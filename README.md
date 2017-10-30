@@ -23,5 +23,7 @@ truffle test
 ## Running the dapp
 
 ```
+testrpc &
+truffle deploy
 npm run dev
 ```
