@@ -38,7 +38,15 @@ window.App = {
 
     var last = undefined;
     $("#name").keyup(_.debounce(function() {
-        var subdomain = $("#name").val().trim();
+        try {
+          var subdomain = namehash.normalize($("#name").val().trim());
+        } catch(e) {
+          self.clearDomains();
+          // TODO: Show icon alerting that this name is invalid.
+          return;
+        }
+        $("#name").val(subdomain);
+
         if(subdomain == last) return;
         last = subdomain;
 
