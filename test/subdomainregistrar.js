@@ -1,4 +1,4 @@
-var ENSImplementation = artifacts.require("ENSImplementation");
+var ENS = artifacts.require("ENS");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 
 var namehash = require('eth-ens-namehash');
@@ -10,7 +10,7 @@ contract('DNSRegistrar', function(accounts) {
 
   before(async function() {
     registrar = await SubdomainRegistrar.deployed();
-    ens = await ENSImplementation.deployed();
+    ens = await ENS.deployed();
   });
 
   it('should set up a domain', async function() {
