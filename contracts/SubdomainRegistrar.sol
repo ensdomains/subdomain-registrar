@@ -50,7 +50,7 @@ contract SubdomainRegistrar {
   event OwnerChanged(bytes32 indexed name, address indexed oldOwner, address indexed newOwner);
   event DomainConfigured(bytes32 indexed name, uint price, uint referralFeePPM);
   event DomainUnlisted(bytes32 indexed name);
-  event NewRegistration(bytes32 indexed name, bytes32 indexed label, address indexed owner, uint price);
+  event NewRegistration(bytes32 indexed name, bytes32 label, address indexed owner, address indexed referrer, uint price);
 
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
@@ -171,7 +171,7 @@ contract SubdomainRegistrar {
     }
 
     doRegistration(domainNode, label, subdomainOwner);
-    NewRegistration(keccak256(name), label, subdomainOwner, domain.price);
+    NewRegistration(keccak256(name), label, subdomainOwner, referrer, domain.price);
   }
 
   function doRegistration(bytes32 node, bytes32 label, address subdomainOwner) internal {

@@ -50,6 +50,7 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(tx.logs[0].args.label, '0x' + sha3('foo'));
     assert.equal(tx.logs[0].args.owner, accounts[1]);
     assert.equal(tx.logs[0].args.price.toNumber(), 1e17);
+    assert.equal(tx.logs[0].args.referrer, accounts[2]);
 
     // Check owner and referrer get their fees
     assert.equal((await web3.eth.getBalance(accounts[0])).toNumber() - ownerBalanceBefore, 9e16);
