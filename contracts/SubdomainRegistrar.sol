@@ -6,10 +6,6 @@ import "./BasicResolver.sol";
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
  *
- * A list of available domains for a given subdomain may be fetched with repeated
- * calls to `nextAvailableDomain`. Return values include the domain name, price,
- * and share allocated to the referrer (generally the dapp interface being used).
- *
  * Users may register a subdomain by calling `register` with the name of the domain
  * they wish to register under, and the label hash of the subdomain they want to
  * register. They must also specify the new owner of the domain, and the referrer,
@@ -30,6 +26,10 @@ import "./BasicResolver.sol";
  *
  * User applications MUST check these two elements for each domain before
  * offering them to users for registration.
+ *
+ * Applications should additionally check that the domains they are offering to
+ * register are controlled by this registrar, since calls to `register` will
+ * fail if this is not the case.
  */
 contract SubdomainRegistrar {
   // namehash('eth')
@@ -46,7 +46,6 @@ contract SubdomainRegistrar {
   }
 
   mapping(bytes32=>Domain) public domains;
-  bytes32[] public domainList;
 
   event OwnerChanged(bytes32 indexed name, address indexed oldOwner, address indexed newOwner);
   event DomainConfigured(bytes32 indexed name, uint price, uint referralFeePPM);
@@ -86,7 +85,7 @@ contract SubdomainRegistrar {
    */
   function transfer(string name, address newOwner) public owner_only(keccak256(name)) {
     var label = keccak256(name);
-    OwnerChanged(sha3(name), domains[label].owner, newOwner);
+    OwnerChanged(keccak256(name), domains[label].owner, newOwner);
     domains[label].owner = newOwner;
   }
 
@@ -103,73 +102,29 @@ contract SubdomainRegistrar {
     if(keccak256(domain.name) != label) {
       // New listing
       domain.name = name;
-      domainList.push(label);
     }
     if(domain.owner != msg.sender) {
       domain.owner = msg.sender;
     }
     domain.price = price;
     domain.referralFeePPM = referralFeePPM;
-    DomainConfigured(sha3(name), price, referralFeePPM);
+    DomainConfigured(keccak256(name), price, referralFeePPM);
   }
 
   /**
    * @dev Unlists a domain
-   * May only be called by the owner, or anyone if the name is no longer
-   * controlled by this contract.
-   * @param idx The index in the list of domains to unlist.
+   * May only be called by the owner.
    * @param name The name of the domain to unlist.
    */
-  function unlistDomain(uint idx, string name) public owner_only(keccak256(name)) {
-    var label = domainList[idx];
-    require(label == keccak256(name));
-
+  function unlistDomain(string name) public owner_only(keccak256(name)) {
+    var label = keccak256(name);
     var domain = domains[label];
     DomainUnlisted(label);
 
     domain.name = '';
-    domain.owner = owner(keccak256(name));
+    domain.owner = owner(label);
     domain.price = 0;
     domain.referralFeePPM = 0;
-
-    // Delete the domain from the list, filling the gap if necessary.
-    if(domainList.length - 1 > idx) {
-      domainList[idx] = domainList[domainList.length - 1];
-    }
-    domainList.length -= 1;
-  }
-
-  /**
-   * @dev Returns information about the next available domain for a subdomain registration.
-   * Call this initially with an index of 0 and the desired subdomain to get the
-   * first available subdomain; repeat by calling with `nextIdx` until `domain`
-   * returns an empty string.
-   * @param idx The index into the list of domains
-   * @param label The desired label hash of the subdomain to register.
-   * @return nextIdx The next index value to call with
-   * @return domainName The domain name, or the empty string if no more suitable domains exist.
-   * @return price The price for registering this subdomain.
-   * @return referralFeePPM The referral fee in PPM for registering this subdomain.
-   */
-  function nextAvailableDomain(uint idx, bytes32 label) public view returns(uint nextIdx, string domainName, uint price, uint referralFeePPM) {
-    for(uint i = idx; i < domainList.length; i++) {
-      var domainLabel = domainList[i];
-      var domain = domains[domainLabel];
-
-      var domainNode = keccak256(TLD_NODE, domainLabel);
-      // Skip domains that we don't have control over
-      if(ens.owner(domainNode) != address(this)) {
-        continue;
-      }
-
-      // Skip domains that are already owned
-      if(ens.owner(keccak256(domainNode, label)) != address(0)) {
-        continue;
-      }
-
-      return (i + 1, domain.name, domain.price, domain.referralFeePPM);
-    }
-    return (0, '', 0, 0);
   }
 
   /**
@@ -189,7 +144,7 @@ contract SubdomainRegistrar {
     var domain = domains[domainLabel];
 
     // Domain must be available for registration
-    require(sha3(domain.name) == domainLabel);
+    require(keccak256(domain.name) == domainLabel);
 
     // User must have paid enough
     require(msg.value >= domain.price);

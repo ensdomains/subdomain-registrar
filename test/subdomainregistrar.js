@@ -29,8 +29,6 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(domainInfo[1], accounts[0]);
     assert.equal(domainInfo[2].toNumber(), 1e17);
     assert.equal(domainInfo[3].toNumber(), 100000);
-
-    assert.equal(await registrar.domainList(0), '0x' + sha3('test'));
   });
 
   it("should fail to register a subdomain if it hasn't been transferred", async function() {
@@ -76,60 +74,17 @@ contract('DNSRegistrar', function(accounts) {
     } catch(error) { }
   });
 
-  it("should return available domains", async function() {
-    await ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('toast'), accounts[0]);
-    await registrar.configureDomain("toast", 1e18, 0);
-    await ens.setOwner(namehash.hash('toast.eth'), registrar.address);
-
-    await ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('invalid'), accounts[0]);
-    await registrar.configureDomain("invalid", 1e18, 0);
-
-    // Checking for 'bar' should return both domains, but not 'invalid'
-    var result = await registrar.nextAvailableDomain(0, '0x' + sha3('bar'));
-    assert.equal(result[0], 1);
-    assert.equal(result[1], 'test');
-    assert.equal(result[2].toNumber(), 1e17);
-    assert.equal(result[3].toNumber(), 100000);
-    result = await registrar.nextAvailableDomain(1, '0x' + sha3('bar'));
-    assert.equal(result[0], 2);
-    assert.equal(result[1], 'toast');
-    assert.equal(result[2].toNumber(), 1e18);
-    assert.equal(result[3].toNumber(), 0);
-    result = await registrar.nextAvailableDomain(2, '0x' + sha3('bar'));
-    assert.equal(result[0], 0);
-    assert.equal(result[1], '');
-
-    // Checking for 'foo' should only return 'toast'
-    result = await registrar.nextAvailableDomain(0, '0x' + sha3('foo'));
-    assert.equal(result[0], 2);
-    assert.equal(result[1], 'toast');
-    assert.equal(result[2].toNumber(), 1e18);
-    assert.equal(result[3].toNumber(), 0);
-    result = await registrar.nextAvailableDomain(2, '0x' + sha3('foo'));
-    assert.equal(result[0], 0);
-    assert.equal(result[1], '');
-  });
-
-  it("should only allow unlisting with the corret name and index", async function() {
-    try {
-      await registrar.unlistDomain(0, 'blah');
-      assert.fail('Expected error not encountered');
-    } catch(error) { }
-  });
-
   it("should not allow a non-owner to unlist a valid domain", async function() {
     try {
-      await registrar.unlistDomain(0, 'test', {from: accounts[1]});
+      await registrar.unlistDomain('test', {from: accounts[1]});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
 
   it("should allow an owner to unlist a domain", async function() {
-    var tx = await registrar.unlistDomain(0, 'test');
+    var tx = await registrar.unlistDomain('test');
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-
-    assert.equal(await registrar.domainList(0), '0x' + sha3('invalid'));
   });
 
   it("should not allow subdomain registrations for an unlisted domain", async function() {
@@ -152,8 +107,6 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(domainInfo[1], accounts[0]);
     assert.equal(domainInfo[2].toNumber(), 1e17);
     assert.equal(domainInfo[3].toNumber(), 100000);
-
-    assert.equal(await registrar.domainList(2), '0x' + sha3('test'));
   });
 
   it("should allow external transfer of ownership", async function() {
