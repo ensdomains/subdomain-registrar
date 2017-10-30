@@ -38,6 +38,10 @@ module.exports = {
       {
        test: /\.css$/,
        use: [ 'style-loader', 'css-loader' ]
+     },
+      {
+          test: /\.(eot|svg|ttf|woff|woff2|otf)$/,
+          use: 'file-loader?name=public/fonts/[name].[ext]'
       }
     ],
     loaders: [
