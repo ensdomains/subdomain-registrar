@@ -85,6 +85,8 @@ window.App = {
     }
   },
   buySubdomain: async function(domain, subdomain) {
+    $(".domainname").text(subdomain + "." + domain[0] + "." + tld);
+    $("#registeringmodal").modal('show');
     var tx = await this.registrar.register(
       domain[0],
       '0x' + sha3(subdomain),
@@ -94,7 +96,9 @@ window.App = {
         from: web3.eth.accounts[0],
         value: domain[2],
       });
-    alert(JSON.stringify(tx));
+    $("#etherscan").attr("href", "https://etherscan.io/tx/" + tx.tx);
+    $("#registeringmodal").modal('hide');
+    $("#registeredmodal").modal('show');
   }
 };
 
