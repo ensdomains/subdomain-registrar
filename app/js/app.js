@@ -24,10 +24,14 @@ window.App = {
     var self = this;
 
     SubdomainRegistrar.setProvider(web3.currentProvider);
-    self.registrar = await SubdomainRegistrar.deployed();
-
     ENS.setProvider(web3.currentProvider);
-    self.ens = await ENS.deployed();
+
+    try {
+      self.registrar = await SubdomainRegistrar.deployed();
+      self.ens = await ENS.deployed();
+    } catch(e) {
+      $("#wrongnetworkmodal").modal('show');
+    }
 
     // Get the information for all known domains, filtering out any unavailable
     // ones.
