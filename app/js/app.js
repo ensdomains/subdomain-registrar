@@ -51,8 +51,10 @@ window.App = {
         last = subdomain;
 
         self.clearDomains();
-        for(var domain of self.domains) {
-          self.checkDomain(domain, subdomain);
+        if(subdomain != "") {
+          for(var domain of self.domains) {
+            self.checkDomain(domain, subdomain);
+          }
         }
     }, 500));
   },
@@ -66,7 +68,7 @@ window.App = {
 
     var namediv = $('<div class="d-flex w-100 justify-content-between">');
     namediv.append($('<h5 class="mb-1">').text(name));
-    var icon = $('<small>');
+    var icon = $('<span class="icon">');
     namediv.append(icon.append($('<span class="oi oi-ellipses">')));
     item.append(namediv);
 
@@ -78,12 +80,12 @@ window.App = {
   },
   setItemState: function(domain, subdomain, item, owned) {
     if(owned) {
-      $("small", item).empty().append($('<span class="oi oi-circle-x">'));
+      $(".icon", item).empty().append($('<span class="oi oi-circle-x">'));
       item.removeClass("list-group-item-success");
       item.addClass("list-group-item-danger");
     } else {
       var cost = web3.fromWei(domain[2]);
-      $("small", item).empty().append($('<span class="badge badge-primary badge-pill">').text("Ξ" + cost));
+      $(".icon", item).empty().append($('<span class="badge badge-primary badge-pill">').text("Ξ" + cost));
       item.removeClass("list-group-item-danger");
       item.addClass("list-group-item-success");
       item.click(() => this.buySubdomain(domain, subdomain, item));
