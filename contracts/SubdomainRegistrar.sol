@@ -156,7 +156,7 @@ contract SubdomainRegistrar {
 
     // Send any referral fee
     var total = domain.price;
-    if(domain.referralFeePPM > 0 && referrer != 0) {
+    if(domain.referralFeePPM > 0 && referrer != 0 && referrer != domain.owner) {
       var referralFee = (domain.price * domain.referralFeePPM) / 1000000;
       referrer.transfer(referralFee);
       total -= referralFee;
