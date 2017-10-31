@@ -73,4 +73,15 @@ contract Custodian {
     function claim(bytes32 label) owner_only(label) new_registrar {
         registrar.transfer(label, msg.sender);
     }
+
+    /**
+     * @dev Assigns ENS ownership if currently owned by the custodian.
+     * Note this may only be called once - once not owned by the custodian,
+     * this method will no longer function!
+     * @param label The label hash of the ENS name to set.
+     * @param owner The address of the new ENS owner.
+     */
+    function assign(bytes32 label, address owner) owner_only(label) {
+      ens.setOwner(keccak256(registrar.rootNode(), label), owner);
+    }
 }
