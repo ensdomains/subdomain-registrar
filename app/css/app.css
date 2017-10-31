@@ -19,6 +19,11 @@ body {
   font-size: 80%;
 }
 
+#enslogo {
+  width: 48px;
+  margin-right: 10px;
+}
+
 nav {
   background: black;
 }

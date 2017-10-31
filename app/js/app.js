@@ -1,4 +1,5 @@
 require('../open-iconic/font/css/open-iconic-bootstrap.css');
+require('html-loader!../index.html');
 
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract';

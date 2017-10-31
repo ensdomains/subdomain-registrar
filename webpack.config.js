@@ -11,7 +11,8 @@ module.exports = {
   plugins: [
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
-      { from: './app/index.html', to: "index.html" }
+      { from: './app/index.html', to: "index.html" },
+      { from: './app/img', to: 'img'},
     ]),
     new webpack.ProvidePlugin({
       $: "jquery",
@@ -38,7 +39,7 @@ module.exports = {
       {
        test: /\.css$/,
        use: [ 'style-loader', 'css-loader' ]
-     },
+      },
       {
           test: /\.(eot|svg|ttf|woff|woff2|otf)$/,
           use: 'file-loader?name=public/fonts/[name].[ext]'
