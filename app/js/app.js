@@ -94,6 +94,7 @@ window.App = {
         from: web3.eth.accounts[0],
         value: domain[2],
       });
+    alert(JSON.stringify(tx));
   }
 };
 

@@ -1,21 +1,24 @@
 var ENS = artifacts.require("ENS");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
+var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 
 var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;
 
 contract('DNSRegistrar', function(accounts) {
   var ens = null;
+  var dhr = null;
   var registrar = null;
 
   before(async function() {
     registrar = await SubdomainRegistrar.deployed();
     ens = await ENS.deployed();
+    dhr = await DummyHashRegistrar.deployed();
   });
 
   it('should set up a domain', async function() {
-    var tx = await ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('test'), accounts[0]);
-    assert.equal(tx.logs.length, 1);
+    var tx = await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[0]);
+    assert.equal(tx.receipt.logs.length, 1);
 
     tx = await registrar.configureDomain("test", 1e17, 100000);
     assert.equal(tx.logs.length, 1);
@@ -111,7 +114,7 @@ contract('DNSRegistrar', function(accounts) {
   });
 
   it("should allow external transfer of ownership", async function() {
-    await ens.setSubnodeOwner(namehash.hash("eth"), '0x' + sha3('test'), accounts[1]);
+    await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[1]);
     tx = await registrar.configureDomain("test", 1e16, 10000, {from: accounts[1]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
