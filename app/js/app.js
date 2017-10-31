@@ -37,14 +37,23 @@ window.App = {
       (domain) => domain[0].length > 0);
 
     var last = undefined;
+    $("#name").keyup(function() {
+      try {
+        var name = $("#name");
+        namehash.normalize(name.val());
+        name.get(0).setCustomValidity("");
+      } catch(e) {
+        name.get(0).setCustomValidity("Please provide a valid domain name");
+      }
+    });
+
     $("#name").keyup(_.debounce(function() {
-        try {
-          var subdomain = namehash.normalize($("#name").val().trim());
-        } catch(e) {
+        var name = $("#name");
+        if(!name.get(0).validity.valid) {
           self.clearDomains();
-          // TODO: Show icon alerting that this name is invalid.
           return;
         }
+        var subdomain = namehash.normalize($("#name").val().trim());
         $("#name").val(subdomain);
 
         if(subdomain == last) return;
