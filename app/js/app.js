@@ -74,17 +74,22 @@ window.App = {
 
     var owner = await this.ens.owner(namehash.hash(name));
     item.removeClass("disabled");
-    if(owner != "0x0000000000000000000000000000000000000000") {
-      icon.empty().append($('<span class="oi oi-circle-x">'));
+    this.setItemState(domain, subdomain, item, owner != "0x0000000000000000000000000000000000000000");
+  },
+  setItemState: function(domain, subdomain, item, owned) {
+    if(owned) {
+      $("small", item).empty().append($('<span class="oi oi-circle-x">'));
+      item.removeClass("list-group-item-success");
       item.addClass("list-group-item-danger");
     } else {
       var cost = web3.fromWei(domain[2]);
-      icon.empty().append($('<span class="badge badge-primary badge-pill">').text("Ξ" + cost));
+      $("small", item).empty().append($('<span class="badge badge-primary badge-pill">').text("Ξ" + cost));
+      item.removeClass("list-group-item-danger");
       item.addClass("list-group-item-success");
-      item.click(() => this.buySubdomain(domain, subdomain));
+      item.click(() => this.buySubdomain(domain, subdomain, item));
     }
   },
-  buySubdomain: async function(domain, subdomain) {
+  buySubdomain: async function(domain, subdomain, item) {
     $(".domainname").text(subdomain + "." + domain[0] + "." + tld);
     $("#registeringmodal").modal('show');
     var tx = await this.registrar.register(
@@ -99,6 +104,7 @@ window.App = {
     $("#etherscan").attr("href", "https://etherscan.io/tx/" + tx.tx);
     $("#registeringmodal").modal('hide');
     $("#registeredmodal").modal('show');
+    this.setItemState(domain, subdomain, item, true);
   }
 };
 
