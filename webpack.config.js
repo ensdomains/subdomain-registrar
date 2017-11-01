@@ -43,7 +43,8 @@ module.exports = {
       {
           test: /\.(eot|svg|ttf|woff|woff2|otf)$/,
           use: 'file-loader?name=public/fonts/[name].[ext]'
-      }
+      },
+      { test: /\.png$/, use: 'file-loader' }
     ],
     loaders: [
       { test: /\.json$/, use: 'json-loader' },

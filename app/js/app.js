@@ -106,6 +106,11 @@ window.App = {
     }
   },
   buySubdomain: async function(domain, subdomain, item) {
+    if(readOnly) {
+      $("#readonlymodal").modal('show');
+      return;
+    }
+
     $(".domainname").text(subdomain + "." + domain[0] + "." + tld);
     $("#registeringmodal").modal('show');
     var tx = await this.registrar.register(
@@ -129,8 +134,10 @@ window.addEventListener('load', function() {
   if (typeof web3 !== 'undefined') {
     // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
+    window.readOnly = false;
   } else {
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    window.web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/Rg6BrBl8vIqJBc7AlL9h"));
+    window.readOnly = true;
   }
 
   App.start();
