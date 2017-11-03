@@ -17,7 +17,7 @@ module.exports = function(deployer, network, accounts) {
       if(dhr != undefined) {
         return Promise.map(domainnames, async function(name) {
           await dhr.setSubnodeOwner('0x' + sha3(name), accounts[0]);
-          await registrar.configureDomain(name, 1e17, 100000);
+          await registrar.configureDomain(name, 1e16, 100000);
           await ens.setOwner(namehash.hash(name + ".eth"), registrar.address);
         });
       }

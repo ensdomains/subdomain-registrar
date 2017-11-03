@@ -151,7 +151,7 @@ contract SubdomainRegistrar {
 
     // Send any extra back
     if(msg.value > domain.price) {
-      msg.sender.transfer(domain.price - msg.value);
+      msg.sender.transfer(msg.value - domain.price);
     }
 
     // Send any referral fee
@@ -163,7 +163,9 @@ contract SubdomainRegistrar {
     }
 
     // Send the registration fee
-    domain.owner.transfer(total);
+    if(total > 0) {
+      domain.owner.transfer(total);
+    }
 
     // Register the domain
     if(subdomainOwner == 0) {
