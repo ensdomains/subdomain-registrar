@@ -33,14 +33,6 @@ window.App = {
       $("#wrongnetworkmodal").modal('show');
     }
 
-    // Get the information for all known domains, filtering out any unavailable
-    // ones.
-    self.domains = await Promise.filter(
-      Promise.map(
-        domainnames,
-        (name) => self.registrar.domains('0x' + sha3(name))),
-      (domain) => domain[0].length > 0);
-
     var last = undefined;
     $("#name").keyup(function() {
       try {
@@ -66,7 +58,7 @@ window.App = {
 
         self.clearDomains();
         if(subdomain != "") {
-          for(var domain of self.domains) {
+          for(var domain of domainnames) {
             self.checkDomain(domain, subdomain);
           }
         }
@@ -76,7 +68,7 @@ window.App = {
     $('#results').empty();
   },
   checkDomain: async function(domain, subdomain) {
-    var name = subdomain + "." + domain[0] + "." + tld;
+    var name = subdomain + "." + domain + "." + tld;
 
     var item = $('<a href="#" class="list-group-item list-group-item-action flex-column align-items-start disabled">');
 
@@ -88,44 +80,45 @@ window.App = {
 
     $('#results').append(item);
 
-    var owner = await this.ens.owner(namehash.hash(name));
+    var info = await this.registrar.query('0x' + sha3(domain), subdomain);
     item.removeClass("disabled");
-    this.setItemState(domain, subdomain, item, owner != "0x0000000000000000000000000000000000000000");
+    this.setItemState(domain, subdomain, item, info);
   },
-  setItemState: function(domain, subdomain, item, owned) {
-    if(owned) {
+  setItemState: function(domain, subdomain, item, info) {
+    if(info[0] == "") {
       $(".icon", item).empty().append($('<span class="oi oi-circle-x">'));
       item.removeClass("list-group-item-success");
       item.addClass("list-group-item-danger");
     } else {
-      var cost = web3.fromWei(domain[2]);
+      var cost = web3.fromWei(info[1]);
       $(".icon", item).empty().append($('<span class="badge badge-primary badge-pill">').text("Ξ" + cost));
       item.removeClass("list-group-item-danger");
       item.addClass("list-group-item-success");
-      item.click(() => this.buySubdomain(domain, subdomain, item));
+      item.click(() => this.buySubdomain(domain, subdomain, item, info));
     }
   },
-  buySubdomain: async function(domain, subdomain, item) {
+  buySubdomain: async function(domain, subdomain, item, info) {
     if(readOnly) {
       $("#readonlymodal").modal('show');
       return;
     }
 
-    $(".domainname").text(subdomain + "." + domain[0] + "." + tld);
+    $(".domainname").text(subdomain + "." + domain + "." + tld);
     $("#registeringmodal").modal('show');
     var tx = await this.registrar.register(
-      domain[0],
-      '0x' + sha3(subdomain),
+      domain,
+      subdomain,
       web3.eth.accounts[0],
       referrerAddress,
       {
         from: web3.eth.accounts[0],
-        value: domain[2],
+        value: info[1],
       });
     $("#etherscan").attr("href", "https://etherscan.io/tx/" + tx.tx);
     $("#registeringmodal").modal('hide');
     $("#registeredmodal").modal('show');
-    this.setItemState(domain, subdomain, item, true);
+    info[0] = '';
+    this.setItemState(domain, subdomain, item, info);
   }
 };
 
