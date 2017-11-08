@@ -23,7 +23,7 @@ contract('SubdomainRegistrar', function(accounts) {
     tx = await registrar.configureDomain("test", 1e17, 100000);
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
-    assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
 
     var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
@@ -47,8 +47,8 @@ contract('SubdomainRegistrar', function(accounts) {
     var tx = await registrar.register('0x' + sha3('test'), 'foo', accounts[1], accounts[2], {from: accounts[1], value: 1e17});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'NewRegistration');
-    assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-    assert.equal(tx.logs[0].args.label, 'foo');
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.subdomain, 'foo');
     assert.equal(tx.logs[0].args.owner, accounts[1]);
     assert.equal(tx.logs[0].args.price.toNumber(), 1e17);
     assert.equal(tx.logs[0].args.referrer, accounts[2]);
@@ -86,7 +86,7 @@ contract('SubdomainRegistrar', function(accounts) {
   it("should allow an owner to unlist a domain", async function() {
     var tx = await registrar.unlistDomain('test');
     assert.equal(tx.logs.length, 1);
-    assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
   });
 
   it("should not allow subdomain registrations for an unlisted domain", async function() {
@@ -100,7 +100,7 @@ contract('SubdomainRegistrar', function(accounts) {
     tx = await registrar.configureDomain("test", 1e17, 100000);
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
-    assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
 
     var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
@@ -114,7 +114,7 @@ contract('SubdomainRegistrar', function(accounts) {
     tx = await registrar.configureDomain("test", 1e16, 10000, {from: accounts[1]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
-    assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
 
     var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
