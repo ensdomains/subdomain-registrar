@@ -2,6 +2,7 @@ pragma solidity ^0.4.4;
 
 import "./ENS.sol";
 import "./BasicResolver.sol";
+import "./RegistrarInterface.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -31,7 +32,7 @@ import "./BasicResolver.sol";
  * register are controlled by this registrar, since calls to `register` will
  * fail if this is not the case.
  */
-contract SubdomainRegistrar {
+contract SubdomainRegistrar is RegistrarInterface {
   // namehash('eth')
   bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
@@ -45,12 +46,9 @@ contract SubdomainRegistrar {
     uint referralFeePPM;
   }
 
-  mapping(bytes32=>Domain) public domains;
+  mapping(bytes32=>Domain) domains;
 
-  event OwnerChanged(bytes32 indexed name, address indexed oldOwner, address indexed newOwner);
-  event DomainConfigured(bytes32 indexed name, uint price, uint referralFeePPM);
   event DomainUnlisted(bytes32 indexed name);
-  event NewRegistration(bytes32 indexed name, bytes32 label, address indexed owner, address indexed referrer, uint price);
 
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
@@ -108,7 +106,7 @@ contract SubdomainRegistrar {
     }
     domain.price = price;
     domain.referralFeePPM = referralFeePPM;
-    DomainConfigured(keccak256(name), price, referralFeePPM);
+    DomainConfigured(keccak256(name));
   }
 
   /**
@@ -128,18 +126,41 @@ contract SubdomainRegistrar {
   }
 
   /**
+   * @dev Returns information about a subdomain.
+   * @param label The label hash for the domain.
+   * @param subdomain The label for the subdomain.
+   * @return domain The name of the domain, or an empty string if the subdomain
+   *                is unavailable.
+   * @return price The price to register a subdomain, in wei.
+   * @return rent The rent to retain a subdomain, in wei per second.
+   * @return referralFeePPM The referral fee for the dapp, in ppm.
+   */
+  function query(bytes32 label, string subdomain) view returns(string domain, uint price, uint rent, uint referralFeePPM) {
+    var node = keccak256(TLD_NODE, label);
+    var subnode = keccak256(node, keccak256(subdomain));
+
+    if(ens.owner(subnode) != 0) {
+      return ('', 0, 0, 0);
+    }
+
+    var data = domains[label];
+    return (data.name, data.price, 0, data.referralFeePPM);
+  }
+
+  /**
    * @dev Registers a subdomain.
    * @param name The name to register a subdomain of.
-   * @param label The desired subdomain label hash.
+   * @param subdomain The desired subdomain label.
    * @param subdomainOwner The account that should own the newly configured subdomain.
    * @param referrer The address of the account to receive the referral fee.
    */
-  function register(string name, bytes32 label, address subdomainOwner, address referrer) public payable {
+  function register(string name, string subdomain, address subdomainOwner, address referrer) public payable {
     var domainLabel = keccak256(name);
     var domainNode = keccak256(TLD_NODE, domainLabel);
+    var subdomainLabel = keccak256(subdomain);
 
     // Subdomain must not be registered already.
-    require(ens.owner(keccak256(domainNode, label)) == address(0));
+    require(ens.owner(keccak256(domainNode, subdomainLabel)) == address(0));
 
     var domain = domains[domainLabel];
 
@@ -171,9 +192,9 @@ contract SubdomainRegistrar {
     if(subdomainOwner == 0) {
       subdomainOwner = msg.sender;
     }
+    doRegistration(domainNode, subdomainLabel, subdomainOwner);
 
-    doRegistration(domainNode, label, subdomainOwner);
-    NewRegistration(keccak256(name), label, subdomainOwner, referrer, domain.price);
+    NewRegistration(keccak256(name), subdomain, subdomainOwner, referrer, domain.price);
   }
 
   function doRegistration(bytes32 node, bytes32 label, address subdomainOwner) internal {

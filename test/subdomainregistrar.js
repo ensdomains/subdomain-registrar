@@ -5,7 +5,7 @@ var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;
 
-contract('DNSRegistrar', function(accounts) {
+contract('SubdomainRegistrar', function(accounts) {
   var ens = null;
   var dhr = null;
   var registrar = null;
@@ -24,13 +24,11 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-    assert.equal(tx.logs[0].args.price.toNumber(), 1e17);
-    assert.equal(tx.logs[0].args.referralFeePPM.toNumber(), 100000);
 
-    var domainInfo = await registrar.domains('0x' + sha3('test'));
+    var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
-    assert.equal(domainInfo[1], accounts[0]);
-    assert.equal(domainInfo[2].toNumber(), 1e17);
+    assert.equal(domainInfo[1].toNumber(), 1e17);
+    assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 100000);
   });
 
@@ -46,11 +44,11 @@ contract('DNSRegistrar', function(accounts) {
     var ownerBalanceBefore = (await web3.eth.getBalance(accounts[0])).toNumber();
     var referrerBalanceBefore = (await web3.eth.getBalance(accounts[2])).toNumber();
 
-    var tx = await registrar.register('test', '0x' + sha3('foo'), accounts[1], accounts[2], {from: accounts[1], value: 1e17});
+    var tx = await registrar.register('test', 'foo', accounts[1], accounts[2], {from: accounts[1], value: 1e17});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'NewRegistration');
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-    assert.equal(tx.logs[0].args.label, '0x' + sha3('foo'));
+    assert.equal(tx.logs[0].args.label, 'foo');
     assert.equal(tx.logs[0].args.owner, accounts[1]);
     assert.equal(tx.logs[0].args.price.toNumber(), 1e17);
     assert.equal(tx.logs[0].args.referrer, accounts[2]);
@@ -66,7 +64,7 @@ contract('DNSRegistrar', function(accounts) {
 
   it("should not permit duplicate registrations", async function() {
     try {
-      await registrar.register('test', '0x' + sha3('foo'), accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('test', 'foo', accounts[0], accounts[0], {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -93,7 +91,7 @@ contract('DNSRegistrar', function(accounts) {
 
   it("should not allow subdomain registrations for an unlisted domain", async function() {
     try {
-      await registrar.register('test', '0x' + sha3('bar'), accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('test', 'bar', accounts[0], accounts[0], {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -103,13 +101,11 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-    assert.equal(tx.logs[0].args.price.toNumber(), 1e17);
-    assert.equal(tx.logs[0].args.referralFeePPM.toNumber(), 100000);
 
-    var domainInfo = await registrar.domains('0x' + sha3('test'));
+    var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
-    assert.equal(domainInfo[1], accounts[0]);
-    assert.equal(domainInfo[2].toNumber(), 1e17);
+    assert.equal(domainInfo[1].toNumber(), 1e17);
+    assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 100000);
   });
 
@@ -119,13 +115,11 @@ contract('DNSRegistrar', function(accounts) {
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
-    assert.equal(tx.logs[0].args.price.toNumber(), 1e16);
-    assert.equal(tx.logs[0].args.referralFeePPM.toNumber(), 10000);
 
-    var domainInfo = await registrar.domains('0x' + sha3('test'));
+    var domainInfo = await registrar.query('0x' + sha3('test'), '');
     assert.equal(domainInfo[0], 'test');
-    assert.equal(domainInfo[1], accounts[1]);
-    assert.equal(domainInfo[2].toNumber(), 1e16);
+    assert.equal(domainInfo[1].toNumber(), 1e16);
+    assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 10000);
   });
 });
