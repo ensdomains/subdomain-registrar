@@ -24,7 +24,7 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav text-uppercase ml-auto">
             <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#register">Register</a>
+              <a class="nav-link" data-toggle="modal" href="#aboutmodal">About</a>
             </li>
           </ul>
         </div>
@@ -141,6 +141,49 @@
           </div>
           <div class="modal-footer">
             <a class="btn btn-info" href="#" role="button" id="etherscan">View on Etherscan</a>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" tabindex="-1" role="dialog" id="aboutmodal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">About ENSNow</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h2>What is this?</h2>
+            <p>ENSNow is a webapp and smart contract that lets you name your Ethereum
+              wallet in 30 seconds, one click, and one transaction.</p>
+
+            <h2>How does it work?</h2>
+            <p>Enter a phrase to search for, and the app will show you all available
+              extensions for that phrase. Click the one you like best, and your
+              web3-enabled browser will pop up a transaction confirmation window.
+              Approve the transaction, and as soon as it's mined, the wallet you
+              sent the transaction from has a working ENS name! You can now give
+              anyone your new name in place of your wallet address.</p>
+
+            <h2>How can I trust the owners of these domains?</h2>
+            <p>In order to be listed on ENSNow, domain owners have to commit
+              ownership of their name to a smart contract. This contract prohibits
+              them from making any changes to the name until the permanent registrar
+              upgrade, planned for approximately May 2019.</p>
+            <p>This means that your names are secure until at least that date. At
+              that time, you should check back in to determine if the owner of your
+              domain has precommitted to a migration path to the permanent registrar
+              that will allow you to retain your name safely.</p>
+
+            <h2>How can I list my own domain?</h2>
+            <p>A detailed migration guide is underway, and a streamlined registration
+              process will follow.</p>
+          </div>
+          <div class="modal-footer">
             <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
           </div>
         </div>
