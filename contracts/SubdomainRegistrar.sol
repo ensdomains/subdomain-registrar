@@ -48,8 +48,6 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   mapping(bytes32=>Domain) domains;
 
-  event DomainUnlisted(bytes32 indexed name);
-
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
     basicResolver = new BasicResolver(_ens);
@@ -149,23 +147,22 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   /**
    * @dev Registers a subdomain.
-   * @param name The name to register a subdomain of.
+   * @param label The label hash of the domain to register a subdomain of.
    * @param subdomain The desired subdomain label.
    * @param subdomainOwner The account that should own the newly configured subdomain.
    * @param referrer The address of the account to receive the referral fee.
    */
-  function register(string name, string subdomain, address subdomainOwner, address referrer) public payable {
-    var domainLabel = keccak256(name);
-    var domainNode = keccak256(TLD_NODE, domainLabel);
+  function register(bytes32 label, string subdomain, address subdomainOwner, address referrer) public payable {
+    var domainNode = keccak256(TLD_NODE, label);
     var subdomainLabel = keccak256(subdomain);
 
     // Subdomain must not be registered already.
     require(ens.owner(keccak256(domainNode, subdomainLabel)) == address(0));
 
-    var domain = domains[domainLabel];
+    var domain = domains[label];
 
     // Domain must be available for registration
-    require(keccak256(domain.name) == domainLabel);
+    require(keccak256(domain.name) == label);
 
     // User must have paid enough
     require(msg.value >= domain.price);
@@ -194,7 +191,7 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
     doRegistration(domainNode, subdomainLabel, subdomainOwner);
 
-    NewRegistration(keccak256(name), subdomain, subdomainOwner, referrer, domain.price);
+    NewRegistration(label, subdomain, subdomainOwner, referrer, domain.price);
   }
 
   function doRegistration(bytes32 node, bytes32 label, address subdomainOwner) internal {
@@ -203,5 +200,17 @@ contract SubdomainRegistrar is RegistrarInterface {
     var subnode = keccak256(node, label);
     ens.setResolver(subnode, basicResolver);
     ens.setOwner(subnode, subdomainOwner);
+  }
+
+  function supportsInterface(bytes4 interfaceID) constant returns (bool) {
+    return interfaceID == 0x01ffc9a7;
+  }
+
+  function rentDue(bytes32 label, string subdomain) public view returns(uint timestamp) {
+    return 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+  }
+
+  function payRent(bytes32 label, string subdomain) public payable {
+    revert();
   }
 }

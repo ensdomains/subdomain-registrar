@@ -34,7 +34,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
   it("should fail to register a subdomain if it hasn't been transferred", async function() {
     try {
-      await registrar.register('foo', '0x' + sha3('test'), accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('foo'), 'test', accounts[0], accounts[0], {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -44,7 +44,7 @@ contract('SubdomainRegistrar', function(accounts) {
     var ownerBalanceBefore = (await web3.eth.getBalance(accounts[0])).toNumber();
     var referrerBalanceBefore = (await web3.eth.getBalance(accounts[2])).toNumber();
 
-    var tx = await registrar.register('test', 'foo', accounts[1], accounts[2], {from: accounts[1], value: 1e17});
+    var tx = await registrar.register('0x' + sha3('test'), 'foo', accounts[1], accounts[2], {from: accounts[1], value: 1e17});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'NewRegistration');
     assert.equal(tx.logs[0].args.name, '0x' + sha3('test'));
@@ -64,7 +64,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
   it("should not permit duplicate registrations", async function() {
     try {
-      await registrar.register('test', 'foo', accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('test'), 'foo', accounts[0], accounts[0], {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -91,7 +91,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
   it("should not allow subdomain registrations for an unlisted domain", async function() {
     try {
-      await registrar.register('test', 'bar', accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('test'), 'bar', accounts[0], accounts[0], {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
