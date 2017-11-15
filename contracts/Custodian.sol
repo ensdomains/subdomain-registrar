@@ -64,6 +64,8 @@ contract Custodian {
      * @param newOwner The address of the new owner.
      */
     function transfer(bytes32 label, address newOwner) owner_only(label) {
+        // Don't let users make the mistake of making the custodian itself the owner.
+        require(newOwner != address(this));
         owners[label] = newOwner;
     }
 
