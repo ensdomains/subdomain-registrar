@@ -104,7 +104,7 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
     domain.price = price;
     domain.referralFeePPM = referralFeePPM;
-    DomainConfigured(keccak256(name));
+    DomainConfigured(label);
   }
 
   /**
