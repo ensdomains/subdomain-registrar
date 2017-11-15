@@ -204,8 +204,8 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   function supportsInterface(bytes4 interfaceID) constant returns (bool) {
     return (
-         interfaceID == 0x01ffc9a7 // supportsInterface(bytes4)
-      ^  interfaceID == 0xc898e728 // RegistrarInterface
+         (interfaceID == 0x01ffc9a7) // supportsInterface(bytes4)
+      || (interfaceID == 0xc898e728) // RegistrarInterface
     );
   }
 
