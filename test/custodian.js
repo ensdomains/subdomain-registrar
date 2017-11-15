@@ -23,7 +23,8 @@ contract('Custodian', function(accounts) {
 
     // Create deedtest.eth
     await dhr.setSubnodeOwner(label, accounts[0]);
-    assert.equal(await custodian.owner(label), accounts[0]);
+    // Custodian returns 0 until the deed is handed over
+    assert.equal(await custodian.owner(label), '0x0000000000000000000000000000000000000000');
     assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[0]);
 
     // Transfer it to the custodian
@@ -72,21 +73,14 @@ contract('Custodian', function(accounts) {
     } catch(e) { }
   });
 
-  it('should permit a transfer of ownership before the deed is assigned to the Custodian', async function() {
+  it('should not permit a transfer of ownership before the deed is assigned to the Custodian', async function() {
     // Create deedtest2.eth
     var label2 = '0x' + sha3('deedtest2');
     await dhr.setSubnodeOwner(label2, accounts[0]);
-    await custodian.transfer(label2, accounts[1]);
-
-    // Custodian should say accounts[1] owns it
-    assert.equal(await custodian.owner(label), accounts[1]);
-    // But ENS should still reflect original ownership
-    assert.equal(await ens.owner(namehash.hash('deedtest2.eth')), accounts[0]);
-
-    // Transfer it to the custodian
-    await dhr.transfer(label2, custodian.address);
-    assert.equal(await custodian.owner(label), accounts[1]);
-    assert.equal(await ens.owner(namehash.hash('deedtest2.eth')), custodian.address);
+    try {
+      await custodian.transfer(label2, accounts[1]);
+      assert.fail("Expected exception");
+    } catch(e) { }
   });
 
   it('should allow reclaiming ownership after a registrar change', async function() {

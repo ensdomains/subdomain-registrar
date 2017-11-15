@@ -26,25 +26,26 @@ contract Custodian {
     }
 
     /**
-     * @dev owner returns the address of the account that owns a deed. Initially
-     *      this is the owner of the deed according to the registry, or the
-     *      previousOwner if ownership has already been transferred to this
-     *      contract. Afterwards, the owner may transfer control to anther account.
+     * @dev owner returns the address of the account that ultimately owns a deed,
+     *      if that deed has been transferred to the custodian. Initially
+     *      this is the previousOwner of the deed. Afterwards, the owner may
+     *      transfer control to anther account.
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
     function owner(bytes32 label) constant returns(address) {
-        if(owners[label] != 0) {
-            return owners[label];
-        }
         var (,deedAddress,,,) = registrar.entries(label);
 
         var deed = Deed(deedAddress);
         var deedOwner = deed.owner();
         if(deedOwner == address(this)) {
-            return deed.previousOwner();
+            // Use the previous owner if ownership hasn't been changed
+            if(owners[label] == 0) {
+                return deed.previousOwner();
+            }
+            return owners[label];
         }
-        return deedOwner;
+        return 0;
     }
 
     modifier owner_only(bytes32 label) {
