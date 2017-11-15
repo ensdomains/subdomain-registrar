@@ -9,7 +9,6 @@ contract RegistrarInterface {
 
   function query(bytes32 label, string subdomain) view returns(string domain, uint signupFee, uint rent, uint referralFeePPM);
   function register(bytes32 label, string subdomain, address owner, address referrer) public payable;
-  function supportsInterface(bytes4 interfaceID) constant returns (bool);
 
   function rentDue(bytes32 label, string subdomain) public view returns(uint timestamp);
   function payRent(bytes32 label, string subdomain) public payable;
