@@ -86,6 +86,17 @@ contract SubdomainRegistrar is RegistrarInterface {
   }
 
   /**
+   * @dev Sets the resolver record for a name in ENS.
+   * @param name The name to set the resolver for.
+   * @param resolver The address of the resolver
+   */
+  function setResolver(string name, address resolver) public owner_only(keccak256(name)) {
+    var label = keccak256(name);
+    var node = keccak256(TLD_NODE, label);
+    ens.setResolver(node, resolver);
+  }
+
+  /**
    * @dev Configures a domain for sale.
    * @param name The name to configure.
    * @param price The price in wei to charge for subdomain registrations
