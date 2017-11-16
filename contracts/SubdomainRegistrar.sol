@@ -1,7 +1,7 @@
 pragma solidity ^0.4.4;
 
 import "./ENS.sol";
-import "./BasicResolver.sol";
+import "./Resolver.sol";
 import "./RegistrarInterface.sol";
 
 /**
@@ -37,7 +37,6 @@ contract SubdomainRegistrar is RegistrarInterface {
   bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
   ENS public ens;
-  BasicResolver public basicResolver;
 
   struct Domain {
     string name;
@@ -50,7 +49,6 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
-    basicResolver = new BasicResolver(_ens);
   }
 
   /**
@@ -163,7 +161,7 @@ contract SubdomainRegistrar is RegistrarInterface {
    * @param subdomainOwner The account that should own the newly configured subdomain.
    * @param referrer The address of the account to receive the referral fee.
    */
-  function register(bytes32 label, string subdomain, address subdomainOwner, address referrer) public payable {
+  function register(bytes32 label, string subdomain, address subdomainOwner, address referrer, address resolver) public payable {
     var domainNode = keccak256(TLD_NODE, label);
     var subdomainLabel = keccak256(subdomain);
 
@@ -200,23 +198,30 @@ contract SubdomainRegistrar is RegistrarInterface {
     if(subdomainOwner == 0) {
       subdomainOwner = msg.sender;
     }
-    doRegistration(domainNode, subdomainLabel, subdomainOwner);
+    doRegistration(domainNode, subdomainLabel, subdomainOwner, Resolver(resolver));
 
     NewRegistration(label, subdomain, subdomainOwner, referrer, domain.price);
   }
 
-  function doRegistration(bytes32 node, bytes32 label, address subdomainOwner) internal {
+  function doRegistration(bytes32 node, bytes32 label, address subdomainOwner, Resolver resolver) internal {
+    // Get the subdomain so we can configure it
     ens.setSubnodeOwner(node, label, this);
 
     var subnode = keccak256(node, label);
-    ens.setResolver(subnode, basicResolver);
+    // Set the subdomain's resolver
+    ens.setResolver(subnode, resolver);
+
+    // Set the address record on the resolver
+    resolver.setAddr(subnode, subdomainOwner);
+
+    // Pass ownership of the new subdomain to the registrant
     ens.setOwner(subnode, subdomainOwner);
   }
 
   function supportsInterface(bytes4 interfaceID) constant returns (bool) {
     return (
          (interfaceID == 0x01ffc9a7) // supportsInterface(bytes4)
-      || (interfaceID == 0xc898e728) // RegistrarInterface
+      || (interfaceID == 0xc1b15f5a) // RegistrarInterface
     );
   }
 

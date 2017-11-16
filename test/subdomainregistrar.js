@@ -1,6 +1,7 @@
 var ENS = artifacts.require("ENS");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
+var TestResolver = artifacts.require("TestResolver");
 
 var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;
@@ -9,11 +10,13 @@ contract('SubdomainRegistrar', function(accounts) {
   var ens = null;
   var dhr = null;
   var registrar = null;
+  var resolver = null;
 
   before(async function() {
     registrar = await SubdomainRegistrar.deployed();
     ens = await ENS.deployed();
     dhr = await DummyHashRegistrar.deployed();
+    resolver = await TestResolver.deployed();
   });
 
   it('should set up a domain', async function() {
@@ -34,7 +37,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
   it("should fail to register a subdomain if it hasn't been transferred", async function() {
     try {
-      await registrar.register('0x' + sha3('foo'), 'test', accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('foo'), 'test', accounts[0], accounts[0], resolver.address, {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -44,7 +47,7 @@ contract('SubdomainRegistrar', function(accounts) {
     var ownerBalanceBefore = (await web3.eth.getBalance(accounts[0])).toNumber();
     var referrerBalanceBefore = (await web3.eth.getBalance(accounts[2])).toNumber();
 
-    var tx = await registrar.register('0x' + sha3('test'), 'foo', accounts[1], accounts[2], {from: accounts[1], value: 1e17});
+    var tx = await registrar.register('0x' + sha3('test'), 'foo', accounts[1], accounts[2], resolver.address, {from: accounts[1], value: 1e17});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'NewRegistration');
     assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
@@ -59,12 +62,13 @@ contract('SubdomainRegistrar', function(accounts) {
 
     // Check the new owner gets their domain
     assert.equal(await ens.owner(namehash.hash('foo.test.eth')), accounts[1]);
-    assert.equal(await ens.resolver(namehash.hash('foo.test.eth')), await registrar.basicResolver());
+    assert.equal(await ens.resolver(namehash.hash('foo.test.eth')), resolver.address);
+    assert.equal(await resolver.addr(namehash.hash('foo.test.eth')), accounts[1]);
   });
 
   it("should not permit duplicate registrations", async function() {
     try {
-      await registrar.register('0x' + sha3('test'), 'foo', accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('test'), 'foo', accounts[0], accounts[0], resolver.address, {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });
@@ -91,7 +95,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
   it("should not allow subdomain registrations for an unlisted domain", async function() {
     try {
-      await registrar.register('0x' + sha3('test'), 'bar', accounts[0], accounts[0], {value: 1e17});
+      await registrar.register('0x' + sha3('test'), 'bar', accounts[0], accounts[0], resolver.address, {value: 1e17});
       assert.fail('Expected error not encountered');
     } catch(error) { }
   });

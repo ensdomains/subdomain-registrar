@@ -29,6 +29,10 @@ window.App = {
     try {
       self.registrar = await SubdomainRegistrar.deployed();
       self.ens = await ENS.deployed();
+
+      // Get the address of the current public resolver
+      self.resolverAddress = await self.ens.resolver(namehash.hash('resolver.eth'));
+      console.log(self.resolverAddress);
     } catch(e) {
       $("#wrongnetworkmodal").modal('show');
     }
@@ -106,10 +110,11 @@ window.App = {
     $(".domainname").text(subdomain + "." + domain + "." + tld);
     $("#registeringmodal").modal('show');
     var tx = await this.registrar.register(
-      domain,
+      '0x' + sha3(domain),
       subdomain,
       web3.eth.accounts[0],
       referrerAddress,
+      this.resolverAddress,
       {
         from: web3.eth.accounts[0],
         value: info[1],
