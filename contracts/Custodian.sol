@@ -16,6 +16,8 @@ contract Custodian {
     // namehash('eth')
     bytes32 constant REGISTRAR_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
+    event NewOwner(bytes32 indexed label, address indexed owner);
+
     ENS public ens;
     HashRegistrarSimplified public registrar;
     mapping(bytes32=>address) owners;
@@ -67,6 +69,7 @@ contract Custodian {
         // Don't let users make the mistake of making the custodian itself the owner.
         require(newOwner != address(this));
         owners[label] = newOwner;
+        NewOwner(label, newOwner);
     }
 
     /**
