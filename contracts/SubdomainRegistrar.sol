@@ -3,6 +3,7 @@ pragma solidity ^0.4.4;
 import "./ENS.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
+import HashRegistrarSimplified from "./HashRegistrarSimplified.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -37,6 +38,7 @@ contract SubdomainRegistrar is RegistrarInterface {
   bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
   ENS public ens;
+  HashRegistrarSimplified public hashRegistrar;
 
   struct Domain {
     string name;
@@ -49,6 +51,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
+    hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
   }
 
   /**
