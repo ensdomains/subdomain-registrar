@@ -1,4 +1,3 @@
-var Custodian = artifacts.require("Custodian");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
 var ENS = artifacts.require("ENS");
@@ -23,8 +22,6 @@ module.exports = function(deployer, network, accounts) {
           await ens.setOwner(namehash.hash(name + ".eth"), registrar.address);
         });
       }
-    }).then(function() {
-      return deployer.deploy(Custodian, ens.address);
     });
   }
 
