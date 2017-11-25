@@ -22,6 +22,16 @@ contract Custodian {
     HashRegistrarSimplified public registrar;
     mapping (bytes32 => address) owners;
 
+    modifier owner_only(bytes32 label) {
+        require(owner(label) == msg.sender);
+        _;
+    }
+
+    modifier new_registrar() {
+        require(ens.owner(REGISTRAR_NODE) != address(registrar));
+        _;
+    }
+
     function Custodian(ENS _ens) {
         ens = _ens;
         registrar = HashRegistrarSimplified(ens.owner(REGISTRAR_NODE));
@@ -48,16 +58,6 @@ contract Custodian {
             return owners[label];
         }
         return 0;
-    }
-
-    modifier owner_only(bytes32 label) {
-        require(owner(label) == msg.sender);
-        _;
-    }
-
-    modifier new_registrar() {
-        require(ens.owner(REGISTRAR_NODE) != address(registrar));
-        _;
     }
 
     /**
