@@ -47,7 +47,18 @@ contract SubdomainRegistrar is RegistrarInterface {
     uint referralFeePPM;
   }
 
+  mapping (bytes32 => address) deedOwners;
   mapping(bytes32=>Domain) domains;
+
+  modifier new_registrar() {
+    require(ens.owner(TLD_NODE) != address(hashRegistrar));
+    _;
+  }
+
+  modifier deed_owner_only(bytes32 label) {
+    require(owner(label) == msg.sender); // @todo
+    _;
+  }
 
   function SubdomainRegistrar(ENS _ens) public {
     ens = _ens;
