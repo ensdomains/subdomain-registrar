@@ -20,7 +20,7 @@ contract Custodian {
 
     ENS public ens;
     HashRegistrarSimplified public registrar;
-    mapping(bytes32=>address) owners;
+    mapping (bytes32 => address) owners;
 
     function Custodian(ENS _ens) {
         ens = _ens;
@@ -35,7 +35,7 @@ contract Custodian {
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
-    function owner(bytes32 label) constant returns(address) {
+    function owner(bytes32 label) constant returns (address) {
         var (,deedAddress,,,) = registrar.entries(label);
 
         var deed = Deed(deedAddress);
