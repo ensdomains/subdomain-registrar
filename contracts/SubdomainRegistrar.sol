@@ -276,7 +276,7 @@ contract SubdomainRegistrar is RegistrarInterface {
    * @param label The label hash of the deed to transfer.
    * @param newOwner The address of the new owner.
    */
-  function transfer(bytes32 label, address newOwner) public deed_owner_only(label) {
+  function transferDeed(bytes32 label, address newOwner) public deed_owner_only(label) {
     // Don't let users make the mistake of making the custodian itself the owner.
     require(newOwner != address(this));
     deedOwners[label] = newOwner;
@@ -298,6 +298,6 @@ contract SubdomainRegistrar is RegistrarInterface {
    * @param owner The address of the new ENS owner.
    */
   function assign(bytes32 label, address owner) public deed_owner_only(label) {
-    ens.setOwner(keccak256(this.rootNode(), label), owner);
+    ens.setOwner(keccak256(hashRegistrar.rootNode(), label), owner);
   }
 }

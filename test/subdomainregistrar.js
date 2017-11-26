@@ -2,6 +2,7 @@ var ENS = artifacts.require("ENS");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
+var Deed = artifacts.require("Deed");
 
 var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;
@@ -145,7 +146,7 @@ contract('SubdomainRegistrar', function(accounts) {
       });
 
       it('should allow a transfer of ownership', async function() {
-          await registrar.transfer(label, accounts[1]);
+          await registrar.transferDeed(label, accounts[1]);
           assert.equal(await registrar.deedOwner(label), accounts[1]);
           // Ownership of the ENS record should *not* change
           assert.equal(await ens.owner(namehash.hash('deedtest.eth')), registrar.address);
@@ -153,7 +154,7 @@ contract('SubdomainRegistrar', function(accounts) {
 
       it('should not allow a non-owner to transfer ownership', async function() {
           try {
-              await registrar.transfer(label, accounts[0]);
+              await registrar.transferDeed(label, accounts[0]);
               assert.fail("Expected exception");
           } catch(e) { }
       });
@@ -189,7 +190,7 @@ contract('SubdomainRegistrar', function(accounts) {
           var label2 = '0x' + sha3('deedtest2');
           await dhr.setSubnodeOwner(label2, accounts[0]);
           try {
-              await registrar.transfer(label2, accounts[1]);
+              await registrar.transferDeed(label2, accounts[1]);
               assert.fail("Expected exception");
           } catch(e) { }
       });
