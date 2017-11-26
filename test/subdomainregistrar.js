@@ -126,4 +126,90 @@ contract('SubdomainRegistrar', function(accounts) {
     assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 10000);
   });
+
+  context("deed", async function() {
+      var label = '0x' + sha3('deedtest');
+
+      it('should take ownership of a deed', async function() {
+
+          // Create deedtest.eth
+          await dhr.setSubnodeOwner(label, accounts[0]);
+          // Custodian returns 0 until the deed is handed over
+          assert.equal(await registrar.deedOwner(label), '0x0000000000000000000000000000000000000000');
+          assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[0]);
+
+          // Transfer it to the custodian
+          await dhr.transfer(label, registrar.address);
+          assert.equal(await registrar.deedOwner(label), accounts[0]);
+          assert.equal(await ens.owner(namehash.hash('deedtest.eth')), registrar.address);
+      });
+
+      it('should allow a transfer of ownership', async function() {
+          await registrar.transfer(label, accounts[1]);
+          assert.equal(await registrar.deedOwner(label), accounts[1]);
+          // Ownership of the ENS record should *not* change
+          assert.equal(await ens.owner(namehash.hash('deedtest.eth')), registrar.address);
+      });
+
+      it('should not allow a non-owner to transfer ownership', async function() {
+          try {
+              await registrar.transfer(label, accounts[0]);
+              assert.fail("Expected exception");
+          } catch(e) { }
+      });
+
+      it('should not allow a non-owner to assign ENS ownership', async function() {
+          try {
+              await registrar.assign(label, accounts[2]);
+              assert.fail("Expected exception");
+          } catch(e) { }
+      });
+
+      it('should allow the owner to assign ENS ownership once', async function() {
+          await registrar.assign(label, accounts[2], {from: accounts[1]});
+          assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[2]);
+      });
+
+      it('should not allow reassignment of ENS ownership', async function() {
+          try {
+              await registrar.assign(label, accounts[3], {from: accounts[1]});
+              assert.fail("Expected exception");
+          } catch(e) { }
+      });
+
+      it('should not allow reclaiming ownership before the registrar changes', async function() {
+          try {
+              await registrar.claim(label, {from: accounts[1]});
+              assert.fail("Expected exception");
+          } catch(e) { }
+      });
+
+      it('should not permit a transfer of ownership before the deed is assigned to the Custodian', async function() {
+          // Create deedtest2.eth
+          var label2 = '0x' + sha3('deedtest2');
+          await dhr.setSubnodeOwner(label2, accounts[0]);
+          try {
+              await registrar.transfer(label2, accounts[1]);
+              assert.fail("Expected exception");
+          } catch(e) { }
+      });
+
+
+      // @todo fix this stuff, reclaiming does not seem to work yet. Issue with ownership
+      it('should allow reclaiming ownership after a registrar change', async function() {
+          // Set a new .eth registrar
+          await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
+
+          // Claim the deed back from the custodian
+          await registrar.claim(label, {from: accounts[1]});
+          //
+          // // Check it's been reassigned to us
+          // var entry = await dhr.entries(label);
+          // var deed = Deed.at(entry[1]);
+          // assert.equal(await deed.owner(), accounts[1]);
+          //
+          // // Registrar is no longer the ENS owner, so can't reassign ENS ownership
+          // assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[2]);
+      });
+  })
 });

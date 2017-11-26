@@ -3,7 +3,7 @@ pragma solidity ^0.4.4;
 import "./ENS.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
-import HashRegistrarSimplified from "./HashRegistrarSimplified.sol";
+import "./HashRegistrarSimplified.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -19,7 +19,7 @@ import HashRegistrarSimplified from "./HashRegistrarSimplified.sol";
  * ownership in the ENS registry to this contract. Ownership in the contract
  * may be transferred using `transfer`, and a domain may be unlisted for sale
  * using `unlistDomain`. There is (deliberately) no way to recover ownership
- * in ENS once the name is transferred to this registrar.
+ * in ENS once the name is transferred to this hashRegistrar.
  *
  * Critically, this contract does not check two key properties of a listed domain:
  *
@@ -256,17 +256,17 @@ contract SubdomainRegistrar is RegistrarInterface {
    * @param label The label hash of the deed to check.
    * @return The address owning the deed.
    */
-  function deedOwner(bytes32 label) constant returns(address) {
-    var (,deedAddress,,,) = registrar.entries(label);
+  function deedOwner(bytes32 label) public view returns (address) {
+    var (,deedAddress,,,) = hashRegistrar.entries(label);
 
     var deed = Deed(deedAddress);
     var deedOwner = deed.owner();
     if(deedOwner == address(this)) {
       // Use the previous owner if ownership hasn't been changed
-      if(owners[label] == 0) {
+      if(deedOwners[label] == 0) {
         return deed.previousOwner();
       }
-      return owners[label];
+      return deedOwners[label];
     }
     return 0;
   }
@@ -279,16 +279,15 @@ contract SubdomainRegistrar is RegistrarInterface {
   function transfer(bytes32 label, address newOwner) public deed_owner_only(label) {
     // Don't let users make the mistake of making the custodian itself the owner.
     require(newOwner != address(this));
-    owners[label] = newOwner;
-    NewOwner(label, newOwner);
+    deedOwners[label] = newOwner;
   }
 
   /**
    * @dev Claims back the deed after a registrar upgrade.
    * @param label The label hash of the deed to transfer.
    */
-  function claim(bytes32 label) owner_only(label) public new_registrar {
-    registrar.transfer(label, msg.sender);
+  function claim(bytes32 label) public deed_owner_only(label) new_registrar {
+    hashRegistrar.transfer(label, msg.sender);
   }
 
   /**
@@ -299,6 +298,6 @@ contract SubdomainRegistrar is RegistrarInterface {
    * @param owner The address of the new ENS owner.
    */
   function assign(bytes32 label, address owner) public deed_owner_only(label) {
-    ens.setOwner(keccak256(registrar.rootNode(), label), owner);
+    ens.setOwner(keccak256(this.rootNode(), label), owner);
   }
 }
