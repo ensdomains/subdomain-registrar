@@ -202,14 +202,14 @@ contract('SubdomainRegistrar', function(accounts) {
 
           // Claim the deed back from the custodian
           await registrar.claim(label, {from: accounts[1]});
-          //
-          // // Check it's been reassigned to us
-          // var entry = await dhr.entries(label);
-          // var deed = Deed.at(entry[1]);
-          // assert.equal(await deed.owner(), accounts[1]);
-          //
-          // // Registrar is no longer the ENS owner, so can't reassign ENS ownership
-          // assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[2]);
+
+          // Check it's been reassigned to us
+          var entry = await dhr.entries(label);
+          var deed = Deed.at(entry[1]);
+          assert.equal(await deed.owner(), accounts[1]);
+
+          // Registrar is no longer the ENS owner, so can't reassign ENS ownership
+          assert.equal(await ens.owner(namehash.hash('deedtest.eth')), accounts[2]);
       });
   })
 });
