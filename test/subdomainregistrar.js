@@ -195,8 +195,6 @@ contract('SubdomainRegistrar', function(accounts) {
           } catch(e) { }
       });
 
-
-      // @todo fix this stuff, reclaiming does not seem to work yet. Issue with ownership
       it('should allow reclaiming ownership after a registrar change', async function() {
           // Set a new .eth registrar
           await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
