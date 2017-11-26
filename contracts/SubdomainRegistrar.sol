@@ -56,7 +56,7 @@ contract SubdomainRegistrar is RegistrarInterface {
   }
 
   modifier deed_owner_only(bytes32 label) {
-    require(owner(label) == msg.sender); // @todo
+    require(deedOwner(label) == msg.sender);
     _;
   }
 
@@ -245,5 +245,60 @@ contract SubdomainRegistrar is RegistrarInterface {
 
   function payRent(bytes32 label, string subdomain) public payable {
     revert();
+  }
+
+
+  /**
+   * @dev deedOwner returns the address of the account that ultimately owns a deed,
+   *      if that deed has been transferred to the custodian. Initially
+   *      this is the previousOwner of the deed. Afterwards, the owner may
+   *      transfer control to anther account.
+   * @param label The label hash of the deed to check.
+   * @return The address owning the deed.
+   */
+  function deedOwner(bytes32 label) constant returns(address) {
+    var (,deedAddress,,,) = registrar.entries(label);
+
+    var deed = Deed(deedAddress);
+    var deedOwner = deed.owner();
+    if(deedOwner == address(this)) {
+      // Use the previous owner if ownership hasn't been changed
+      if(owners[label] == 0) {
+        return deed.previousOwner();
+      }
+      return owners[label];
+    }
+    return 0;
+  }
+
+  /**
+   * @dev Transfers control of a deed to a new account.
+   * @param label The label hash of the deed to transfer.
+   * @param newOwner The address of the new owner.
+   */
+  function transfer(bytes32 label, address newOwner) public deed_owner_only(label) {
+    // Don't let users make the mistake of making the custodian itself the owner.
+    require(newOwner != address(this));
+    owners[label] = newOwner;
+    NewOwner(label, newOwner);
+  }
+
+  /**
+   * @dev Claims back the deed after a registrar upgrade.
+   * @param label The label hash of the deed to transfer.
+   */
+  function claim(bytes32 label) owner_only(label) public new_registrar {
+    registrar.transfer(label, msg.sender);
+  }
+
+  /**
+   * @dev Assigns ENS ownership if currently owned by the custodian.
+   * Note this may only be called once - once not owned by the custodian,
+   * this method will no longer function!
+   * @param label The label hash of the ENS name to set.
+   * @param owner The address of the new ENS owner.
+   */
+  function assign(bytes32 label, address owner) public deed_owner_only(label) {
+    ens.setOwner(keccak256(registrar.rootNode(), label), owner);
   }
 }
