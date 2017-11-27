@@ -127,4 +127,19 @@ contract('SubdomainRegistrar', function(accounts) {
     assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 10000);
   });
+
+  it("should allow an owner to set a transfer address", async function () {
+    tx = await registrar.setTransferAddress("test", accounts[2], {from: accounts[1]});
+    assert.equal(tx.logs.length, 1);
+    assert.equal(tx.logs[0].event, 'TransferAddressSet');
+    assert.equal(tx.logs[0].args.addr, accounts[2]);
+  });
+
+  // it("should allow an owner to upgrade domain", async function () {
+  //   tx = await registrar.upgrade('0x' + sha3('test'), {from: accounts[1]});
+  //   assert.equal(tx.logs.length, 1);
+  //   assert.equal(tx.logs[0].event, 'DomainUpgraded');
+  //   assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
+  // });
+
 });

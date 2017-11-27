@@ -25,7 +25,7 @@ module.exports = function(deployer, network, accounts) {
     });
   }
 
-  if(network == "development") {
+  // if(network == "development") {
     return deployer.deploy(ENS).then(function() {
       return ENS.deployed();
     }).then(function(ens) {
@@ -46,7 +46,7 @@ module.exports = function(deployer, network, accounts) {
         });
       });
     });
-  } else {
-    return ENS.deployed().then(stage2);
-   }
+  // } else {
+    // return ENS.deployed().then(stage2);
+   // }
 };

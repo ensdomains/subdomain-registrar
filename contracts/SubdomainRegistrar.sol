@@ -60,6 +60,9 @@ contract SubdomainRegistrar is RegistrarInterface {
         _;
     }
 
+    event TransferAddressSet(address addr);
+    event DomainUpgraded(string label);
+
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
         hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
@@ -114,8 +117,13 @@ contract SubdomainRegistrar is RegistrarInterface {
         var domain = domains[label];
 
         if (domain.owner == 0x0) {
-            var (,deedAddress,,,) = registrar.entries(label);
-            domain.owner = deed.previousOwner();
+            var (,deedAddress,,,) = hashRegistrar.entries(label);
+            domain.owner = Deed(deedAddress).previousOwner();
+        }
+
+        // @todo: do we still need this?
+        if (domain.owner != msg.sender) {
+            domain.owner = msg.sender;
         }
 
         if (keccak256(domain.name) != label) {
@@ -128,13 +136,14 @@ contract SubdomainRegistrar is RegistrarInterface {
         DomainConfigured(label);
     }
 
-    function setTransferAddress(string name, address transfer) public only_owner(keccak256(name)) {
+    function setTransferAddress(string name, address transfer) public owner_only(keccak256(name)) {
         var label = keccak256(name);
         var domain = domains[label];
 
         require(domain.transferAddress == 0x0);
 
         domain.transferAddress = transfer;
+        TransferAddressSet(transfer);
     }
 
     /**
@@ -147,7 +156,11 @@ contract SubdomainRegistrar is RegistrarInterface {
         var domain = domains[label];
         DomainUnlisted(label);
 
-        delete domains[label];
+        domain.name = '';
+        domain.owner = owner(label);
+        domain.price = 0;
+        domain.referralFeePPM = 0;
+        domain.transferAddress = 0;
     }
 
     /**
@@ -248,14 +261,16 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
 
     /**
-     * @dev Claims back the deed after a registrar upgrade.
-     * @param label The label hash of the deed to transfer.
+     * @dev Upgrades the domain to a new registrar.
+     * @param name The name of the domain to transfer.
      */
-    function upgrade(bytes32 label) public owner_only(label) new_registrar { // @todo do we still need new_registrar?
+    function upgrade(string name) public owner_only(keccak256(name)) new_registrar { // @todo do we still need new_registrar?
+        var label = keccak256(name);
         address transfer = domains[label].transferAddress;
         delete domains[label];
 
         hashRegistrar.transfer(label, transfer);
+        DomainUpgraded(name);
     }
 
     function payRent(bytes32 label, string subdomain) public payable {
