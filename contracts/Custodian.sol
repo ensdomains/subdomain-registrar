@@ -20,9 +20,19 @@ contract Custodian {
 
     ENS public ens;
     HashRegistrarSimplified public registrar;
-    mapping(bytes32=>address) owners;
+    mapping (bytes32 => address) owners;
 
-    function Custodian(ENS _ens) {
+    modifier owner_only(bytes32 label) {
+        require(owner(label) == msg.sender);
+        _;
+    }
+
+    modifier new_registrar() {
+        require(ens.owner(REGISTRAR_NODE) != address(registrar));
+        _;
+    }
+
+    function Custodian(ENS _ens) public {
         ens = _ens;
         registrar = HashRegistrarSimplified(ens.owner(REGISTRAR_NODE));
     }
@@ -35,7 +45,7 @@ contract Custodian {
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
-    function owner(bytes32 label) constant returns(address) {
+    function owner(bytes32 label) public constant returns (address) {
         var (,deedAddress,,,) = registrar.entries(label);
 
         var deed = Deed(deedAddress);
@@ -50,22 +60,12 @@ contract Custodian {
         return 0;
     }
 
-    modifier owner_only(bytes32 label) {
-        require(owner(label) == msg.sender);
-        _;
-    }
-
-    modifier new_registrar() {
-        require(ens.owner(REGISTRAR_NODE) != address(registrar));
-        _;
-    }
-
     /**
      * @dev Transfers control of a deed to a new account.
      * @param label The label hash of the deed to transfer.
      * @param newOwner The address of the new owner.
      */
-    function transfer(bytes32 label, address newOwner) owner_only(label) {
+    function transfer(bytes32 label, address newOwner) public owner_only(label) {
         // Don't let users make the mistake of making the custodian itself the owner.
         require(newOwner != address(this));
         owners[label] = newOwner;
@@ -76,7 +76,7 @@ contract Custodian {
      * @dev Claims back the deed after a registrar upgrade.
      * @param label The label hash of the deed to transfer.
      */
-    function claim(bytes32 label) owner_only(label) new_registrar {
+    function claim(bytes32 label) owner_only(label) public new_registrar {
         registrar.transfer(label, msg.sender);
     }
 
@@ -87,7 +87,7 @@ contract Custodian {
      * @param label The label hash of the ENS name to set.
      * @param owner The address of the new ENS owner.
      */
-    function assign(bytes32 label, address owner) owner_only(label) {
+    function assign(bytes32 label, address owner) public owner_only(label) {
       ens.setOwner(keccak256(registrar.rootNode(), label), owner);
     }
 }
