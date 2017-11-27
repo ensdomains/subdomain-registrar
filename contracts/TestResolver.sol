@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.17;
 
 import "./ENS.sol";
 import "./Resolver.sol";
@@ -7,23 +7,24 @@ import "./Resolver.sol";
  * @dev A test resolver implementation
  */
 contract TestResolver is Resolver {
-  ENS ens;
-  mapping(bytes32=>address) addresses;
+    ENS ens;
 
-  function TestResolver(ENS _ens) public {
-    ens = _ens;
-  }
+    mapping (bytes32 => address) addresses;
 
-  function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
-    return interfaceID == 0x01ffc9a7 || interfaceID == 0x3b3b57de;
-  }
+    function TestResolver(ENS _ens) public {
+        ens = _ens;
+    }
 
-  function addr(bytes32 node) public view returns (address) {
-    return addresses[node];
-  }
+    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
+        return interfaceID == 0x01ffc9a7 || interfaceID == 0x3b3b57de;
+    }
 
-  function setAddr(bytes32 node, address addr) public {
-    require(ens.owner(node) == msg.sender);
-    addresses[node] = addr;
-  }
+    function addr(bytes32 node) public view returns (address) {
+        return addresses[node];
+    }
+
+    function setAddr(bytes32 node, address addr) public {
+        require(ens.owner(node) == msg.sender);
+        addresses[node] = addr;
+    }
 }
