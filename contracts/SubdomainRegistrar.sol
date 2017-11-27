@@ -43,22 +43,17 @@ contract SubdomainRegistrar is RegistrarInterface {
     struct Domain {
         string name;
         address owner;
+        address transferAddress;
         uint price;
         uint referralFeePPM;
     }
 
-    mapping (bytes32 => address) deedOwners;
     mapping (bytes32 => Domain) domains;
 
-  modifier deed_owner_only(bytes32 label) {
-    require(deedOwner(label) == msg.sender);
-    _;
-  }
-
-  modifier new_registrar() {
-    require(ens.owner(TLD_NODE) != address(hashRegistrar));
-    _;
-  }
+    modifier new_registrar() {
+        require(ens.owner(TLD_NODE) != address(hashRegistrar));
+        _;
+    }
 
     modifier owner_only(bytes32 label) {
         require(owner(label) == msg.sender);
@@ -118,16 +113,28 @@ contract SubdomainRegistrar is RegistrarInterface {
         var label = keccak256(name);
         var domain = domains[label];
 
+        if (domain.owner == 0x0) {
+            var (,deedAddress,,,) = registrar.entries(label);
+            domain.owner = deed.previousOwner();
+        }
+
         if (keccak256(domain.name) != label) {
             // New listing
             domain.name = name;
         }
-        if (domain.owner != msg.sender) {
-            domain.owner = msg.sender;
-        }
+
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
         DomainConfigured(label);
+    }
+
+    function setTransferAddress(string name, address transfer) public only_owner(keccak256(name)) {
+        var label = keccak256(name);
+        var domain = domains[label];
+
+        require(domain.transferAddress == 0x0);
+
+        domain.transferAddress = transfer;
     }
 
     /**
@@ -140,10 +147,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         var domain = domains[label];
         DomainUnlisted(label);
 
-        domain.name = '';
-        domain.owner = owner(label);
-        domain.price = 0;
-        domain.referralFeePPM = 0;
+        delete domains[label];
     }
 
     /**
@@ -243,59 +247,16 @@ contract SubdomainRegistrar is RegistrarInterface {
         return 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
     }
 
+    /**
+     * @dev Claims back the deed after a registrar upgrade.
+     * @param label The label hash of the deed to transfer.
+     */
+    function upgrade(bytes32 label) public owner_only(label) new_registrar { // @todo do we still need new_registrar?
+        address transfer = domains[label].transferAddress;
+        delete domains[label];
 
-  /**
-   * @dev deedOwner returns the address of the account that ultimately owns a deed,
-   *      if that deed has been transferred to the custodian. Initially
-   *      this is the previousOwner of the deed. Afterwards, the owner may
-   *      transfer control to anther account.
-   * @param label The label hash of the deed to check.
-   * @return The address owning the deed.
-   */
-  function deedOwner(bytes32 label) public view returns (address) {
-    var (,deedAddress,,,) = hashRegistrar.entries(label);
-
-    var deed = Deed(deedAddress);
-    var deedOwner = deed.owner();
-    if(deedOwner == address(this)) {
-      // Use the previous owner if ownership hasn't been changed
-      if(deedOwners[label] == 0) {
-        return deed.previousOwner();
-      }
-      return deedOwners[label];
+        hashRegistrar.transfer(label, transfer);
     }
-    return 0;
-  }
-
-  /**
-   * @dev Transfers control of a deed to a new account.
-   * @param label The label hash of the deed to transfer.
-   * @param newOwner The address of the new owner.
-   */
-  function transferDeed(bytes32 label, address newOwner) public deed_owner_only(label) {
-    // Don't let users make the mistake of making the custodian itself the owner.
-    require(newOwner != address(this));
-    deedOwners[label] = newOwner;
-  }
-
-  /**
-   * @dev Claims back the deed after a registrar upgrade.
-   * @param label The label hash of the deed to transfer.
-   */
-  function claim(bytes32 label) public deed_owner_only(label) new_registrar {
-    hashRegistrar.transfer(label, msg.sender);
-  }
-
-  /**
-   * @dev Assigns ENS ownership if currently owned by the custodian.
-   * Note this may only be called once - once not owned by the custodian,
-   * this method will no longer function!
-   * @param label The label hash of the ENS name to set.
-   * @param owner The address of the new ENS owner.
-   */
-  function assign(bytes32 label, address owner) public deed_owner_only(label) {
-    ens.setOwner(keccak256(hashRegistrar.rootNode(), label), owner);
-  }
 
     function payRent(bytes32 label, string subdomain) public payable {
         revert();
