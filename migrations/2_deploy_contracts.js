@@ -28,7 +28,7 @@ module.exports = function(deployer, network, accounts) {
     });
   }
 
-  if(network == "development") {
+  if (network == "test") {
     return deployer.deploy(ENS).then(function() {
       return ENS.deployed();
     }).then(function(ens) {
