@@ -44,7 +44,8 @@
     "test": "truffle test",
     "watch": "npm-watch",
     "build": "webpack",
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server",
+    "lint": "solium --dir ./contracts"
   },
   "watch": {
     "test": {
