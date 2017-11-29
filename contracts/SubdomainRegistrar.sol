@@ -21,7 +21,7 @@ import "./HashRegistrarSimplified.sol";
  * using `unlistDomain`. There is (deliberately) no way to recover ownership
  * in ENS once the name is transferred to this registrar.
  *
- * Critically, this contract does not check two key properties of a listed domain:
+ * Critically, this contract does not check one key property of a listed domain:
  *
  * - Is the name UTS46 normalised?
  *
@@ -80,6 +80,10 @@ contract SubdomainRegistrar is RegistrarInterface {
         ret = ens.owner(keccak256(TLD_NODE, label));
         if (ret == address(this)) {
             ret = domains[label].owner;
+
+            if (ret == 0x0) {
+                ret = deed(label).previousOwner();
+            }
         }
     }
 
@@ -116,12 +120,6 @@ contract SubdomainRegistrar is RegistrarInterface {
         var label = keccak256(name);
         var domain = domains[label];
 
-        if (domain.owner == 0x0) {
-            var (,deedAddress,,,) = hashRegistrar.entries(label);
-            domain.owner = Deed(deedAddress).previousOwner();
-        }
-
-        // @todo: do we still need this?
         if (domain.owner != msg.sender) {
             domain.owner = msg.sender;
         }
@@ -160,7 +158,6 @@ contract SubdomainRegistrar is RegistrarInterface {
         domain.owner = owner(label);
         domain.price = 0;
         domain.referralFeePPM = 0;
-        domain.transferAddress = 0;
     }
 
     /**
@@ -264,7 +261,7 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @dev Upgrades the domain to a new registrar.
      * @param name The name of the domain to transfer.
      */
-    function upgrade(string name) public owner_only(keccak256(name)) new_registrar { // @todo do we still need new_registrar?
+    function upgrade(string name) public owner_only(keccak256(name)) new_registrar {
         var label = keccak256(name);
         address transfer = domains[label].transferAddress;
         delete domains[label];
@@ -275,5 +272,10 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     function payRent(bytes32 label, string subdomain) public payable {
         revert();
+    }
+
+    function deed(bytes32 label) internal view returns (Deed) {
+        var (,deedAddress,,,) = hashRegistrar.entries(label);
+        return Deed(deedAddress);
     }
 }
