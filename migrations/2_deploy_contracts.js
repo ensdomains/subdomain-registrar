@@ -18,8 +18,6 @@ module.exports = function(deployer, network, accounts) {
         // Configuration of test domains
         return Promise.map(domainnames, async function(name) {
           await dhr.setSubnodeOwner('0x' + sha3(name), accounts[0]);
-          await ens.setOwner(namehash.hash(name + ".eth"), registrar.address);
-
           await dhr.transfer('0x' + sha3(name), registrar.address);
           await registrar.configureDomain(name, 1e16, 100000);
 
