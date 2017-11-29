@@ -3,6 +3,7 @@ pragma solidity ^0.4.17;
 import "./ENS.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
+import "./HashRegistrarSimplified.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -20,10 +21,9 @@ import "./RegistrarInterface.sol";
  * using `unlistDomain`. There is (deliberately) no way to recover ownership
  * in ENS once the name is transferred to this registrar.
  *
- * Critically, this contract does not check two key properties of a listed domain:
+ * Critically, this contract does not check one key property of a listed domain:
  *
  * - Is the name UTS46 normalised?
- * - Is the Deed held by an appropriate custodian contract?
  *
  * User applications MUST check these two elements for each domain before
  * offering them to users for registration.
@@ -33,27 +33,39 @@ import "./RegistrarInterface.sol";
  * fail if this is not the case.
  */
 contract SubdomainRegistrar is RegistrarInterface {
+
     // namehash('eth')
     bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
     ENS public ens;
+    HashRegistrarSimplified public hashRegistrar;
 
     struct Domain {
         string name;
         address owner;
+        address transferAddress;
         uint price;
         uint referralFeePPM;
     }
 
     mapping (bytes32 => Domain) domains;
 
+    modifier new_registrar() {
+        require(ens.owner(TLD_NODE) != address(hashRegistrar));
+        _;
+    }
+
     modifier owner_only(bytes32 label) {
         require(owner(label) == msg.sender);
         _;
     }
 
+    event TransferAddressSet(address addr);
+    event DomainUpgraded(string label);
+
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
+        hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
     }
 
     /**
@@ -64,11 +76,13 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
-    function owner(bytes32 label) public view returns (address ret) {
-        ret = ens.owner(keccak256(TLD_NODE, label));
-        if (ret == address(this)) {
-            ret = domains[label].owner;
+    function owner(bytes32 label) public view returns (address) {
+
+        if (domains[label].owner != 0x0) {
+            return domains[label].owner;
         }
+
+        return deed(label).previousOwner();
     }
 
     /**
@@ -104,16 +118,28 @@ contract SubdomainRegistrar is RegistrarInterface {
         var label = keccak256(name);
         var domain = domains[label];
 
+        if (domain.owner != msg.sender) {
+            domain.owner = msg.sender;
+        }
+
         if (keccak256(domain.name) != label) {
             // New listing
             domain.name = name;
         }
-        if (domain.owner != msg.sender) {
-            domain.owner = msg.sender;
-        }
+
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
         DomainConfigured(label);
+    }
+
+    function setTransferAddress(string name, address transfer) public owner_only(keccak256(name)) {
+        var label = keccak256(name);
+        var domain = domains[label];
+
+        require(domain.transferAddress == 0x0);
+
+        domain.transferAddress = transfer;
+        TransferAddressSet(transfer);
     }
 
     /**
@@ -229,7 +255,25 @@ contract SubdomainRegistrar is RegistrarInterface {
         return 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
     }
 
+    /**
+     * @dev Upgrades the domain to a new registrar.
+     * @param name The name of the domain to transfer.
+     */
+    function upgrade(string name) public owner_only(keccak256(name)) new_registrar {
+        var label = keccak256(name);
+        address transfer = domains[label].transferAddress;
+        delete domains[label];
+
+        hashRegistrar.transfer(label, transfer);
+        DomainUpgraded(name);
+    }
+
     function payRent(bytes32 label, string subdomain) public payable {
         revert();
+    }
+
+    function deed(bytes32 label) internal view returns (Deed) {
+        var (,deedAddress,,,) = hashRegistrar.entries(label);
+        return Deed(deedAddress);
     }
 }
