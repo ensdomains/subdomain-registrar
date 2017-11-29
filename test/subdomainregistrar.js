@@ -115,31 +115,33 @@ contract('SubdomainRegistrar', function(accounts) {
   });
 
   it("should allow external transfer of ownership", async function() {
-    await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[1]);
-    tx = await registrar.configureDomain("test", 1e16, 10000, {from: accounts[1]});
+    await dhr.setSubnodeOwner('0x' + sha3('deed'), accounts[1]);
+    tx = await registrar.configureDomain("deed", 1e16, 10000, {from: accounts[1]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainConfigured');
-    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
+    assert.equal(tx.logs[0].args.label, '0x' + sha3('deed'));
 
-    var domainInfo = await registrar.query('0x' + sha3('test'), '');
-    assert.equal(domainInfo[0], 'test');
+    var domainInfo = await registrar.query('0x' + sha3('deed'), '');
+    assert.equal(domainInfo[0], 'deed');
     assert.equal(domainInfo[1].toNumber(), 1e16);
     assert.equal(domainInfo[2].toNumber(), 0);
     assert.equal(domainInfo[3].toNumber(), 10000);
   });
 
   it("should allow an owner to set a transfer address", async function () {
-    tx = await registrar.setTransferAddress("test", accounts[2], {from: accounts[1]});
+    tx = await registrar.setTransferAddress("deed", accounts[2], {from: accounts[1]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'TransferAddressSet');
     assert.equal(tx.logs[0].args.addr, accounts[2]);
   });
 
   it("should allow an owner to upgrade domain", async function () {
-    tx = await registrar.upgrade('0x' + sha3('test'), {from: accounts[1]});
-    assert.equal(tx.logs.length, 1);
-    assert.equal(tx.logs[0].event, 'DomainUpgraded');
-    assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
+      await dhr.transfer('0x' + sha3('deed'), registrar.address, {from: accounts[1]});
+      await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
+      let tx = await registrar.upgrade('0x' + sha3('deed'), {from: accounts[1]});
+      assert.equal(tx.logs.length, 1);
+      assert.equal(tx.logs[0].event, 'DomainUpgraded');
+      assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
   });
 
 });
