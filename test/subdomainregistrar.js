@@ -45,7 +45,6 @@ contract('SubdomainRegistrar', function(accounts) {
   });
 
   it("should register subdomains", async function() {
-    await ens.setOwner(namehash.hash('test.eth'), registrar.address);
     var ownerBalanceBefore = (await web3.eth.getBalance(accounts[0])).toNumber();
     var referrerBalanceBefore = (await web3.eth.getBalance(accounts[2])).toNumber();
 
@@ -116,17 +115,15 @@ contract('SubdomainRegistrar', function(accounts) {
   });
 
   it("should allow an owner to set a transfer address", async function () {
-    tx = await registrar.setTransferAddress("deed", accounts[2], {from: accounts[1]});
+    tx = await registrar.setTransferAddress("test", accounts[2], {from: accounts[0]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'TransferAddressSet');
     assert.equal(tx.logs[0].args.addr, accounts[2]);
   });
 
   it("should allow an owner to upgrade domain", async function () {
-      await dhr.transfer('0x' + sha3('deed'), registrar.address, {from: accounts[1]});
-      assert.equal(await ens.owner(namehash.hash('deed.eth')), registrar.address);
-      await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
-      let tx = await registrar.upgrade('0x' + sha3('deed'), {from: accounts[1]});
+      await ens.setOwner(0, '0x' + sha3('eth'), accounts[0]);
+      let tx = await registrar.upgrade('0x' + sha3('test'), {from: accounts[0]});
       // assert.equal(tx.logs.length, 1);g
       // assert.equal(tx.logs[0].event, 'DomainUpgraded');
       // assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
