@@ -1,4 +1,3 @@
-var Custodian = artifacts.require("Custodian");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
 var ENS = artifacts.require("ENS");
@@ -19,12 +18,11 @@ module.exports = function(deployer, network, accounts) {
         // Configuration of test domains
         return Promise.map(domainnames, async function(name) {
           await dhr.setSubnodeOwner('0x' + sha3(name), accounts[0]);
+          await dhr.transfer('0x' + sha3(name), registrar.address);
           await registrar.configureDomain(name, 1e16, 100000);
-          await ens.setOwner(namehash.hash(name + ".eth"), registrar.address);
+
         });
       }
-    }).then(function() {
-      return deployer.deploy(Custodian, ens.address);
     });
   }
 
@@ -51,5 +49,5 @@ module.exports = function(deployer, network, accounts) {
     });
   } else {
     return ENS.deployed().then(stage2);
-  }
+   }
 };
