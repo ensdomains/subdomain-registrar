@@ -122,11 +122,11 @@ contract('SubdomainRegistrar', function(accounts) {
   });
 
   it("should allow an owner to upgrade domain", async function () {
-      await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[1]);
-      let tx = await registrar.upgrade('test', {from: accounts[0]});
-      assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'DomainUpgraded');
-      assert.equal(tx.logs[0].args.label, 'test');
+    await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[1]);
+    let tx = await registrar.upgrade('test', {from: accounts[0]});
+    assert.equal(tx.logs.length, 1);
+    assert.equal(tx.logs[0].event, 'DomainUpgraded');
+    assert.equal(tx.logs[0].args.label, 'test');
   });
 
 });
