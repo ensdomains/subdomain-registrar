@@ -92,7 +92,7 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param newOwner The address of the new owner.
      */
     function transfer(string name, address newOwner) public owner_only(keccak256(name)) {
-        var label = keccak256(name);
+        bytes32 label = keccak256(name);
         OwnerChanged(keccak256(name), domains[label].owner, newOwner);
         domains[label].owner = newOwner;
     }
@@ -103,8 +103,8 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param resolver The address of the resolver
      */
     function setResolver(string name, address resolver) public owner_only(keccak256(name)) {
-        var label = keccak256(name);
-        var node = keccak256(TLD_NODE, label);
+        bytes32 label = keccak256(name);
+        bytes32 node = keccak256(TLD_NODE, label);
         ens.setResolver(node, resolver);
     }
 
@@ -115,8 +115,8 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param referralFeePPM The referral fee to offer, in parts per million
      */
     function configureDomain(string name, uint price, uint referralFeePPM) public owner_only(keccak256(name)) {
-        var label = keccak256(name);
-        var domain = domains[label];
+        bytes32 label = keccak256(name);
+        Domain domain = domains[label];
 
         if (domain.owner != msg.sender) {
             domain.owner = msg.sender;
@@ -133,8 +133,8 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
 
     function setTransferAddress(string name, address transfer) public owner_only(keccak256(name)) {
-        var label = keccak256(name);
-        var domain = domains[label];
+        bytes32 label = keccak256(name);
+        Domain domain = domains[label];
 
         require(domain.transferAddress == 0x0);
 
@@ -148,8 +148,8 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param name The name of the domain to unlist.
      */
     function unlistDomain(string name) public owner_only(keccak256(name)) {
-        var label = keccak256(name);
-        var domain = domains[label];
+        bytes32 label = keccak256(name);
+        Domain domain = domains[label];
         DomainUnlisted(label);
 
         domain.name = '';
@@ -169,14 +169,14 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @return referralFeePPM The referral fee for the dapp, in ppm.
      */
     function query(bytes32 label, string subdomain) public view returns (string domain, uint price, uint rent, uint referralFeePPM) {
-        var node = keccak256(TLD_NODE, label);
-        var subnode = keccak256(node, keccak256(subdomain));
+        bytes32 node = keccak256(TLD_NODE, label);
+        bytes32 subnode = keccak256(node, keccak256(subdomain));
 
         if (ens.owner(subnode) != 0) {
             return ('', 0, 0, 0);
         }
 
-        var data = domains[label];
+        Domain data = domains[label];
         return (data.name, data.price, 0, data.referralFeePPM);
     }
 
@@ -188,13 +188,13 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param referrer The address of the account to receive the referral fee.
      */
     function register(bytes32 label, string subdomain, address subdomainOwner, address referrer, address resolver) public payable {
-        var domainNode = keccak256(TLD_NODE, label);
-        var subdomainLabel = keccak256(subdomain);
+        bytes32 domainNode = keccak256(TLD_NODE, label);
+        bytes32 subdomainLabel = keccak256(subdomain);
 
         // Subdomain must not be registered already.
         require(ens.owner(keccak256(domainNode, subdomainLabel)) == address(0));
 
-        var domain = domains[label];
+        Domain domain = domains[label];
 
         // Domain must be available for registration
         require(keccak256(domain.name) == label);
@@ -208,7 +208,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         }
 
         // Send any referral fee
-        var total = domain.price;
+        uint256 total = domain.price;
         if (domain.referralFeePPM * domain.price > 0 && referrer != 0 && referrer != domain.owner) {
             uint256 referralFee = (domain.price * domain.referralFeePPM) / 1000000;
             referrer.transfer(referralFee);
@@ -233,7 +233,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         // Get the subdomain so we can configure it
         ens.setSubnodeOwner(node, label, this);
 
-        var subnode = keccak256(node, label);
+        bytes32 subnode = keccak256(node, label);
         // Set the subdomain's resolver
         ens.setResolver(subnode, resolver);
 
@@ -260,7 +260,7 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param name The name of the domain to transfer.
      */
     function upgrade(string name) public owner_only(keccak256(name)) new_registrar {
-        var label = keccak256(name);
+        bytes32 label = keccak256(name);
         address transfer = domains[label].transferAddress;
         delete domains[label];
 
