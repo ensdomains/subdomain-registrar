@@ -76,15 +76,13 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
-    function owner(bytes32 label) public view returns (address ret) {
-        ret = ens.owner(keccak256(TLD_NODE, label));
-        if (ret == address(this)) {
-            ret = domains[label].owner;
+    function owner(bytes32 label) public view returns (address) {
 
-            if (ret == 0x0) {
-                ret = deed(label).previousOwner();
-            }
+        if (domains[label].owner != 0x0) {
+            return domains[label].owner;
         }
+
+        return deed(label).previousOwner();
     }
 
     /**
