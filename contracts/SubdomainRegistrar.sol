@@ -70,9 +70,10 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     /**
      * @dev owner returns the address of the account that controls a domain.
-     *      Initially this is the owner of the name in ENS. If the name has been
+     *      Initially this is a null address. If the name has been
      *      transferred to this contract, then the internal mapping is consulted
-     *      to determine who controls it.
+     *      to determine who controls it. If the owner is not set,
+     *      the previous owner of the deed is returned.
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
@@ -80,6 +81,10 @@ contract SubdomainRegistrar is RegistrarInterface {
 
         if (domains[label].owner != 0x0) {
             return domains[label].owner;
+        }
+
+        if (ens.owner(label) != address(this)) {
+            return 0x0;
         }
 
         return deed(label).previousOwner();
@@ -132,6 +137,11 @@ contract SubdomainRegistrar is RegistrarInterface {
         DomainConfigured(label);
     }
 
+    /**
+     * @dev Sets the transfer address of a domain for after an ENS update.
+     * @param name The name for which to set the transfer address.
+     * @param transfer The address to transfer to.
+     */
     function setTransferAddress(string name, address transfer) public owner_only(keccak256(name)) {
         bytes32 label = keccak256(name);
         Domain domain = domains[label];
