@@ -83,7 +83,7 @@ contract SubdomainRegistrar is RegistrarInterface {
             return domains[label].owner;
         }
 
-        if (ens.owner(label) != address(this)) {
+        if (ens.owner(keccak256(TLD_NODE, label)) != address(this)) {
             return 0x0;
         }
 
