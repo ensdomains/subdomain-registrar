@@ -60,8 +60,8 @@ contract SubdomainRegistrar is RegistrarInterface {
         _;
     }
 
-    event TransferAddressSet(address addr);
-    event DomainUpgraded(string label);
+    event TransferAddressSet(bytes32 indexed label, address addr);
+    event DomainUpgraded(bytes32 indexed label, string name);
 
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
@@ -150,7 +150,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         require(domain.transferAddress == 0x0);
 
         domain.transferAddress = transfer;
-        TransferAddressSet(transfer);
+        TransferAddressSet(label, transfer);
     }
 
     /**
@@ -276,7 +276,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         delete domains[label];
 
         hashRegistrar.transfer(label, transfer);
-        DomainUpgraded(name);
+        DomainUpgraded(label, name);
     }
 
     function payRent(bytes32 label, string subdomain) public payable {

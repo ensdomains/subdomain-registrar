@@ -126,7 +126,7 @@ contract('SubdomainRegistrar', function(accounts) {
     let tx = await registrar.upgrade('test', {from: accounts[0]});
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainUpgraded');
-    assert.equal(tx.logs[0].args.label, 'test');
+    assert.equal(tx.logs[0].args.name, 'test');
   });
 
 });
