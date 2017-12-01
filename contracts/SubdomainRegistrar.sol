@@ -61,7 +61,7 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
 
     event TransferAddressSet(bytes32 indexed label, address addr);
-    event DomainUpgraded(bytes32 indexed label, string label);
+    event DomainUpgraded(bytes32 indexed label, string name);
 
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
