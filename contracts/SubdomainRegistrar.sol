@@ -272,6 +272,9 @@ contract SubdomainRegistrar is RegistrarInterface {
     function upgrade(string name) public owner_only(keccak256(name)) new_registrar {
         bytes32 label = keccak256(name);
         address transfer = domains[label].transferAddress;
+
+        require(transfer != 0x0);
+
         delete domains[label];
 
         hashRegistrar.transfer(label, transfer);
