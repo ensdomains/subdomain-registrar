@@ -10,7 +10,7 @@ This is a set of smart contracts and corresponding webapp that facilitates easy 
 git clone https://github.com/Arachnid/subdomain-registrar.git
 cd subdomain-registrar
 npm install
-cd node-modules/truffle
+cd node_modules/truffle
 npm install solc@0.4.18
 cd ../..
 ```
