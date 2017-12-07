@@ -75,6 +75,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     event TransferAddressSet(bytes32 indexed label, address addr);
     event DomainUpgraded(bytes32 indexed label, string name);
+    event DomainMigrated(bytes32 indexed label);
 
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
@@ -307,6 +308,24 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     function migrate(string name) public owner_only(keccak256(name)) {
         require(stopped);
+
+        bytes32 label = keccak256(name);
+        Domain domain = domains[label];
+
+        ens.setOwner(label, todo);
+
+        SubdomainRegistrar(todo).configureDomainFor(
+            label,
+            domain.name,
+            domain.price,
+            domain.referralFeePPM,
+            domain.owner,
+            domain.transferAddress
+        );
+
+        delete domain;
+
+        DomainMigrated(label);
     }
 
     function transferRegistrarOwner(address newOwner) registrar_owner_only {
