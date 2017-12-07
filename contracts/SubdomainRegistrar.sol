@@ -312,6 +312,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         bytes32 label = keccak256(name);
         Domain domain = domains[label];
 
+        deed(label).transfer(todo);
         ens.setOwner(label, todo);
 
         SubdomainRegistrar(todo).configureDomainFor(
