@@ -134,12 +134,16 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param price The price in wei to charge for subdomain registrations
      * @param referralFeePPM The referral fee to offer, in parts per million
      */
-    function configureDomain(string name, uint price, uint referralFeePPM) public not_stopped owner_only(keccak256(name)) {
+    function configureDomain(string name, uint price, uint referralFeePPM) {
+        configureDomainFor(name, price, referralFeePPM, msg.sender, 0x0);
+    }
+
+    function configureDomainFor(string name, uint price, uint referralFeePPM, address owner, address transfer) public not_stopped owner_only(keccak256(name)) {
         bytes32 label = keccak256(name);
         Domain domain = domains[label];
 
-        if (domain.owner != msg.sender) {
-            domain.owner = msg.sender;
+        if (domain.owner != owner) {
+            domain.owner = owner;
         }
 
         if (keccak256(domain.name) != label) {
@@ -149,6 +153,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
+        domain.transferAddress = transfer;
         DomainConfigured(label);
     }
 
