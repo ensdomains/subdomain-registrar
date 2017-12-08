@@ -39,6 +39,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     bool public stopped = false;
     address public registrarOwner;
+    address public migration;
 
     ENS public ens;
     HashRegistrarSimplified public hashRegistrar;
@@ -302,21 +303,21 @@ contract SubdomainRegistrar is RegistrarInterface {
         DomainUpgraded(label, name);
     }
 
-    function stop() not_stopped owner_only {
+    function stop(address _migration) not_stopped registrar_owner_only {
         stopped = true;
+        migration = _migration;
     }
 
-    function migrate(string name) public owner_only(keccak256(name)) {
+    function migrate(string name) public {
         require(stopped);
+        require(migration != 0x0);
 
         bytes32 label = keccak256(name);
         Domain domain = domains[label];
 
-        deed(label).transfer(todo);
-        ens.setOwner(label, todo);
+        hashRegistrar.transfer(label, migration);
 
-        SubdomainRegistrar(todo).configureDomainFor(
-            label,
+        SubdomainRegistrar(migration).configureDomainFor(
             domain.name,
             domain.price,
             domain.referralFeePPM,
@@ -324,12 +325,12 @@ contract SubdomainRegistrar is RegistrarInterface {
             domain.transferAddress
         );
 
-        delete domain;
+        delete domains[label];
 
         DomainMigrated(label);
     }
 
-    function transferRegistrarOwner(address newOwner) registrar_owner_only {
+    function transferOwnership(address newOwner) registrar_owner_only {
         registrarOwner = newOwner;
     }
 

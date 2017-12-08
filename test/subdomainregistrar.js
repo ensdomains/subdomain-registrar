@@ -127,6 +127,19 @@ contract('SubdomainRegistrar', function(accounts) {
     assert.equal(tx.logs.length, 1);
     assert.equal(tx.logs[0].event, 'DomainUpgraded');
     assert.equal(tx.logs[0].args.name, 'test');
+    await ens.setSubnodeOwner(0, '0x' + sha3('eth'), dhr.address);
   });
+
+  it("should allow migration if emergency stopped", async function () {
+    await dhr.setSubnodeOwner('0x' + sha3('migration'), accounts[0]);
+    await dhr.transfer('0x' + sha3('migration'), registrar.address);
+    await registrar.configureDomain("migration", 1e18, 0);
+
+    let newRegistrar = await SubdomainRegistrar.new(ens.address);
+
+    await registrar.stop(newRegistrar.address);
+    await registrar.migrate("migration");
+    assert.equal(await ens.owner(namehash.hash('migration.eth')), newRegistrar.address);
+  })
 
 });
