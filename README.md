@@ -1,6 +1,6 @@
 # ENS Subdomain registrar
 
-[![Build Status](https://travis-ci.org/Arachnid/subdomain-registrar.svg?branch=master)](https://travis-ci.org/Arachnid/subdomain-registrar) [![License](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](LICENSE)
+[![Build Status](https://travis-ci.org/ensdomains/subdomain-registrar.svg?branch=master)](https://travis-ci.org/ensdomains/subdomain-registrar) [![License](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](LICENSE)
 
 This is a set of smart contracts and corresponding webapp that facilitates easy registration of ENS subdomains for users. By simply entering a desired subdomain name and choosing from a list of available domains, they can register a subdomain and point it at their account in one click.
 
@@ -45,8 +45,9 @@ npm run dev
 ## Authors
 
 * **Nick Johnson** - [Arachnid](https://github.com/Arachnid)
+* **Dean Eigenmann** - [decanus](https://github.com/decanus)
 
-See also the list of [contributors](https://github.com/Arachnid/subdomain-registrar/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/ensdomains/subdomain-registrar/contributors) who participated in this project.
 
 ## License
 
