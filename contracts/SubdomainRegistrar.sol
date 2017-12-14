@@ -37,6 +37,10 @@ contract SubdomainRegistrar is RegistrarInterface {
     // namehash('eth')
     bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
+    bool public stopped = false;
+    address public registrarOwner;
+    address public migration;
+
     ENS public ens;
     HashRegistrarSimplified public hashRegistrar;
 
@@ -60,12 +64,23 @@ contract SubdomainRegistrar is RegistrarInterface {
         _;
     }
 
+    modifier not_stopped() {
+        require(!stopped);
+        _;
+    }
+
+    modifier registrar_owner_only() {
+        require(msg.sender == registrarOwner);
+        _;
+    }
+
     event TransferAddressSet(bytes32 indexed label, address addr);
-    event DomainUpgraded(bytes32 indexed label, string name);
+    event DomainTransferred(bytes32 indexed label, string name);
 
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
         hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
+        registrarOwner = msg.sender;
     }
 
     /**
@@ -120,12 +135,16 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @param price The price in wei to charge for subdomain registrations
      * @param referralFeePPM The referral fee to offer, in parts per million
      */
-    function configureDomain(string name, uint price, uint referralFeePPM) public owner_only(keccak256(name)) {
+    function configureDomain(string name, uint price, uint referralFeePPM) {
+        configureDomainFor(name, price, referralFeePPM, msg.sender, 0x0);
+    }
+
+    function configureDomainFor(string name, uint price, uint referralFeePPM, address owner, address transfer) public not_stopped owner_only(keccak256(name)) {
         bytes32 label = keccak256(name);
         Domain domain = domains[label];
 
-        if (domain.owner != msg.sender) {
-            domain.owner = msg.sender;
+        if (domain.owner != owner) {
+            domain.owner = owner;
         }
 
         if (keccak256(domain.name) != label) {
@@ -135,6 +154,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
+        domain.transferAddress = transfer;
         DomainConfigured(label);
     }
 
@@ -279,7 +299,54 @@ contract SubdomainRegistrar is RegistrarInterface {
         delete domains[label];
 
         hashRegistrar.transfer(label, transfer);
-        DomainUpgraded(label, name);
+        DomainTransferred(label, name);
+    }
+
+
+    /**
+     * @dev Stops the registrar, disabling configuring of new domains.
+     */
+    function stop() not_stopped registrar_owner_only {
+        stopped = true;
+    }
+
+    /**
+     * @dev Sets the address where domains are migrated to.
+     * @param _migration Address of the new registrar.
+     */
+    function setMigrationAddress(address _migration) registrar_owner_only {
+        require(stopped);
+        migration = _migration;
+    }
+
+    /**
+     * @dev Migrates the domain to a new registrar.
+     * @param name The name of the domain to migrate.
+     */
+    function migrate(string name) public {
+        require(stopped);
+        require(migration != 0x0);
+
+        bytes32 label = keccak256(name);
+        Domain domain = domains[label];
+
+        hashRegistrar.transfer(label, migration);
+
+        SubdomainRegistrar(migration).configureDomainFor(
+            domain.name,
+            domain.price,
+            domain.referralFeePPM,
+            domain.owner,
+            domain.transferAddress
+        );
+
+        delete domains[label];
+
+        DomainTransferred(label, name);
+    }
+
+    function transferOwnership(address newOwner) registrar_owner_only {
+        registrarOwner = newOwner;
     }
 
     function payRent(bytes32 label, string subdomain) public payable {
