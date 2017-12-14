@@ -75,8 +75,7 @@ contract SubdomainRegistrar is RegistrarInterface {
     }
 
     event TransferAddressSet(bytes32 indexed label, address addr);
-    event DomainUpgraded(bytes32 indexed label, string name);
-    event DomainMigrated(bytes32 indexed label);
+    event DomainTransferred(bytes32 indexed label, string name);
 
     function SubdomainRegistrar(ENS _ens) public {
         ens = _ens;
@@ -300,11 +299,15 @@ contract SubdomainRegistrar is RegistrarInterface {
         delete domains[label];
 
         hashRegistrar.transfer(label, transfer);
-        DomainUpgraded(label, name);
+        DomainTransferred(label, name);
     }
 
-    function stop(address _migration) not_stopped registrar_owner_only {
+    function stop() not_stopped registrar_owner_only {
         stopped = true;
+    }
+
+    function setMigrationAddress(address _migration) registrar_owner_only {
+        require(stopped);
         migration = _migration;
     }
 
@@ -327,7 +330,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
         delete domains[label];
 
-        DomainMigrated(label);
+        DomainTransferred(label, name);
     }
 
     function transferOwnership(address newOwner) registrar_owner_only {

@@ -125,7 +125,7 @@ contract('SubdomainRegistrar', function(accounts) {
     await ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[1]);
     let tx = await registrar.upgrade('test', {from: accounts[0]});
     assert.equal(tx.logs.length, 1);
-    assert.equal(tx.logs[0].event, 'DomainUpgraded');
+    assert.equal(tx.logs[0].event, 'DomainTransferred');
     assert.equal(tx.logs[0].args.name, 'test');
     await ens.setSubnodeOwner(0, '0x' + sha3('eth'), dhr.address);
   });
@@ -137,7 +137,8 @@ contract('SubdomainRegistrar', function(accounts) {
 
     let newRegistrar = await SubdomainRegistrar.new(ens.address);
 
-    await registrar.stop(newRegistrar.address);
+    await registrar.stop();
+    await registrar.setMigrationAddress(newRegistrar.address);
     await registrar.migrate("migration");
     assert.equal(await ens.owner(namehash.hash('migration.eth')), newRegistrar.address);
   })
