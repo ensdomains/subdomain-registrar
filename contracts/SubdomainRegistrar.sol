@@ -302,15 +302,27 @@ contract SubdomainRegistrar is RegistrarInterface {
         DomainTransferred(label, name);
     }
 
+
+    /**
+     * @dev Stops the registrar, disabling configuring of new domains.
+     */
     function stop() not_stopped registrar_owner_only {
         stopped = true;
     }
 
+    /**
+     * @dev Sets the address where domains are migrated to.
+     * @param _migration Address of the new registrar.
+     */
     function setMigrationAddress(address _migration) registrar_owner_only {
         require(stopped);
         migration = _migration;
     }
 
+    /**
+     * @dev Migrates the domain to a new registrar.
+     * @param name The name of the domain to migrate.
+     */
     function migrate(string name) public {
         require(stopped);
         require(migration != 0x0);
