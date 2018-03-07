@@ -131,16 +131,22 @@ contract('SubdomainRegistrar', function(accounts) {
   });
 
   it("should allow migration if emergency stopped", async function () {
-    await dhr.setSubnodeOwner('0x' + sha3('migration'), accounts[0]);
-    await dhr.transfer('0x' + sha3('migration'), registrar.address);
-    await registrar.configureDomain("migration", 1e18, 0);
+    await dhr.setSubnodeOwner('0x' + sha3('migration'), accounts[1]);
+    await dhr.transfer('0x' + sha3('migration'), registrar.address, {from: accounts[1]});
+    await registrar.configureDomain("migration", 1e18, 0, {from: accounts[1]});
 
     let newRegistrar = await SubdomainRegistrar.new(ens.address);
 
     await registrar.stop();
     await registrar.setMigrationAddress(newRegistrar.address);
-    await registrar.migrate("migration");
-    assert.equal(await ens.owner(namehash.hash('migration.eth')), newRegistrar.address);
-  })
 
+    try {
+      // Don't allow anyone else to migrate the name.
+      await registrar.migrate("migration");
+      assert.fail('Expected error not encountered');
+    } catch(error) { }
+
+    await registrar.migrate("migration", {from: accounts[1]});
+    assert.equal(await ens.owner(namehash.hash('migration.eth')), newRegistrar.address);
+  });
 });
