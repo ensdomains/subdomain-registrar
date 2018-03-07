@@ -71,8 +71,9 @@ At any point, the owner of a domain may specify a 'transfer address' for their d
 The intended workflow is as follows:
 
  1. A new .eth registrar is deployed, but not yet activated. Users are advised of a migration date.
- 2. Domain owners on the subdomain registrar set the transfer address for their domains to that of a 'migration contract' that will handle upgrading the domain to the new registrar and committing it to a new subdomain registrar. Users can verify this is the case, and since transfer addresses are immutable, can be guaranteed it will happen.
- 3. The .eth registrar upgrade happens
+ 2. Domain owners on the subdomain registrar set the transfer address for their domains to that of a 'migration contract' that will handle upgrading the domain to the new registrar and committing it to a new subdomain registrar.
+ 3. Users have an opportunity to evaluate the upgrade path, and stop using their subdomains if unhappy with it.
+ 3. The .eth registrar upgrade happens.
  4. The domain owner calls `upgrade`, transferring ownership and performing the upgrade process.
 
 ## Built With
