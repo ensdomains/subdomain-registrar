@@ -141,7 +141,13 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     /**
      * @dev Configures a domain, optionally transferring it to a new owner.
-
+     * @param name The name to configure.
+     * @param price The price in wei to charge for subdomain registrations.
+     * @param referralFeePPM The referral fee to offer, in parts per million.
+     * @param _owner The address to assign ownership of this domain to.
+     * @param _transfer The address to set as the transfer address for the name
+     *        when the permanent registrar is replaced. Can only be set to a non-zero
+     *        value once.
      */
     function configureDomainFor(string name, uint price, uint referralFeePPM, address _owner, address _transfer) public owner_only(keccak256(name)) {
         bytes32 label = keccak256(name);
@@ -162,9 +168,9 @@ contract SubdomainRegistrar is RegistrarInterface {
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
 
-        if(domain.transferAddress != _transfer && _transfer != 0) {
-          domain.transferAddress = _transfer;
-          TransferAddressSet(label, _transfer);
+        if (domain.transferAddress != _transfer && _transfer != 0) {
+            domain.transferAddress = _transfer;
+            TransferAddressSet(label, _transfer);
         }
 
         DomainConfigured(label);
