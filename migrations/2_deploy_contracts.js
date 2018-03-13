@@ -16,11 +16,11 @@ module.exports = function(deployer, network, accounts) {
     }).then(function(registrar) {
       if(dhr != undefined) {
         // Configuration of test domains
-        return Promise.map(domainnames, async function(name) {
-          await dhr.setSubnodeOwner('0x' + sha3(name), accounts[0]);
-          await dhr.transfer('0x' + sha3(name), registrar.address);
-          await registrar.configureDomain(name, 1e16, 100000);
-
+        return Promise.map(domainnames, async function(domain) {
+          if(domain.registrar !== undefined) return;
+          await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
+          await dhr.transfer('0x' + sha3(domain.name), registrar.address);
+          await registrar.configureDomain(domain.name, 1e16, 100000);
         });
       }
     });
