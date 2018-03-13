@@ -24,12 +24,10 @@ var registrarVersions = {
   "0.9": {
     // v0.9 is identical to 1.0, but the referrer and resolver arguments are swapped on `register`.
     query: async function(domain, subdomain) {
-      var registrar = await (domain.registrar === undefined ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
-      return registrar.query('0x' + sha3(domain.name), subdomain);
+      return domain.contract.query('0x' + sha3(domain.name), subdomain);
     },
     register: async function(domain, subdomain, ownerAddress, referrerAddress, resolverAddress, value) {
-      var registrar = await (domain.registrar === undefined ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
-      return registrar.register(
+      return domain.contract.register(
         '0x' + sha3(domain.name),
         subdomain,
         ownerAddress,
@@ -43,12 +41,10 @@ var registrarVersions = {
   },
   "1.0": {
     query: async function(domain, subdomain) {
-      var registrar = await (domain.registrar === undefined ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
-      return registrar.query('0x' + sha3(domain.name), subdomain);
+      return domain.contract.query('0x' + sha3(domain.name), subdomain);
     },
     register: async function(domain, subdomain, ownerAddress, referrerAddress, resolverAddress, value) {
-      var registrar = await (domain.registrar === undefined ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
-      return registrar.register(
+      return domain.contract.register(
         '0x' + sha3(domain.name),
         subdomain,
         ownerAddress,
@@ -83,6 +79,9 @@ window.App = {
 
     try {
       self.ens = await ENS.deployed();
+
+      // Construct instances of the registrars we know about
+      await this.buildInstances();
 
       // Get the address of the current public resolver
       self.resolverAddress = await self.ens.resolver(namehash.hash('resolver.eth'));
@@ -120,6 +119,16 @@ window.App = {
           self.checkDomains(domainnames, subdomain, 2);
         }
     }.bind(this), 500));
+  },
+  buildInstances: async function() {
+    var registrars = {};
+    for(var i = 0; i < domainnames.length; i++) {
+      var domain = domainnames[i];
+      if(registrars[domain.registrar] === undefined) {
+        registrars[domain.registrar] = await ((domain.registrar === undefined) ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
+      }
+      domainnames[i].contract = registrars[domain.registrar];
+    }
   },
   clearDomains: function() {
     $('#results').empty();
