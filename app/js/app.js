@@ -159,7 +159,6 @@ window.App = {
     if(subdomain != this.last) return;
 
     item.data().info = info;
-    console.log(domain.name + " fee ppm " + info[3]);
     if(info[0] == "") {
       $(".icon", item).empty().append($('<span class="oi oi-circle-x">'));
       item.removeClass("list-group-item-success");
@@ -176,7 +175,6 @@ window.App = {
       for(var li of $('#results a')) {
         li = $(li);
         if(li.hasClass("disabled") || li.hasClass("list-group-item-danger") || domainge(item.data().info, li.data().info)) {
-          console.log(item.data().info + " > " + li.data().info);
           item.insertBefore(li);
           return;
         }
