@@ -34,6 +34,7 @@
   {"name": "ethereumpurse", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
   {"name": "extravagant", "version": "1.0"},
   {"name": "ishername", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
+  {"name": "my-bank", "version": "1.0"},
   {"name": "necesita", "version": "1.0"},
   {"name": "needsmore", "version": "1.0"},
   {"name": "requires", "version": "1.0"},
