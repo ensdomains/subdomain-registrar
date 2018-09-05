@@ -16,6 +16,7 @@
   {"name": "atleeroy", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
   {"name": "atmedium", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
   {"name": "atopenbazaar", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
+  {"name": "atpeepeth", "version": "1.0"}
   {"name": "atreddit", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
   {"name": "atrocketchat", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
   {"name": "atslack", "version": "0.9", "registrar": "0xfa6512358d241b636edf5f8ccaaf86676dec21a7"},
