@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/HashRegistrar.sol";
 import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
@@ -25,13 +25,13 @@ contract SubdomainMigrationRegistrar {
         ethRegistrar = _ethRegistrar;
     }
 
-    function configureDomainFor(string name, uint price, uint referralFeePPM, address _owner, address _transfer) public onlyPreviousRegistrar {
-        bytes32 label = keccak256(name);
+    function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public onlyPreviousRegistrar {
+        bytes32 label = keccak256(abi.encode(name));
 
         uint256 value = deed(label).value();
 
         hashRegistrar.transferRegistrars(label);
-        ethRegistrar.transfer(uint256(label), newRegistrar);
+        ethRegistrar.transferFrom(address(this), newRegistrar, uint256(label));
 
         _owner.transfer(value);
 
@@ -45,7 +45,7 @@ contract SubdomainMigrationRegistrar {
     }
 
     function deed(bytes32 label) internal view returns (Deed) {
-        var (,deedAddress,,,) = hashRegistrar.entries(label);
+        (, address deedAddress,,,) = hashRegistrar.entries(label);
         return Deed(deedAddress);
     }
 

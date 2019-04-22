@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/ENS.sol";
 import "./Resolver.sol";
@@ -11,7 +11,7 @@ contract TestResolver is Resolver {
 
     mapping (bytes32 => address) addresses;
 
-    function TestResolver(ENS _ens) public {
+    constructor(ENS _ens) public {
         ens = _ens;
     }
 

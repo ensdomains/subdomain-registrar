@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.5.0;
 
 contract RegistrarInterface {
     event OwnerChanged(bytes32 indexed label, address indexed oldOwner, address indexed newOwner);
@@ -8,9 +8,9 @@ contract RegistrarInterface {
     event RentPaid(bytes32 indexed label, string subdomain, uint amount, uint expirationDate);
 
     // InterfaceID of these four methods is 0xc1b15f5a
-    function query(bytes32 label, string subdomain) public view returns (string domain, uint signupFee, uint rent, uint referralFeePPM);
-    function register(bytes32 label, string subdomain, address owner, address referrer, address resolver) public payable;
+    function query(bytes32 label, string memory subdomain) public view returns (string memory domain, uint signupFee, uint rent, uint referralFeePPM);
+    function register(bytes32 label, string memory subdomain, address owner, address referrer, address resolver) public payable;
 
-    function rentDue(bytes32 label, string subdomain) public view returns (uint timestamp);
-    function payRent(bytes32 label, string subdomain) public payable;
+    function rentDue(bytes32 label, string memory subdomain) public view returns (uint timestamp);
+    function payRent(bytes32 label, string memory subdomain) public payable;
 }
