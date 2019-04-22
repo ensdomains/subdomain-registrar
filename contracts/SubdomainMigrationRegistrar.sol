@@ -1,8 +1,14 @@
 pragma solidity ^0.5.0;
 
+import "@ensdomains/ens/contracts/HashRegistrar.sol";
+import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
+
 contract SubdomainMigrationRegistrar {
 
     bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+
+    HashRegistrar public hashRegistrar;
+    BaseRegistrar public ethRegistrar;
 
     address public previousRegistrar;
     address public newRegistrar;
@@ -12,15 +18,22 @@ contract SubdomainMigrationRegistrar {
         _;
     }
 
-    constructor(address _previousRegistrar, address _newRegistrar) public {
+    constructor(address _previousRegistrar, address _newRegistrar, HashRegistrar _hashRegistrar, BaseRegistrar _ethRegistrar) public {
         previousRegistrar = _previousRegistrar;
-        newRegistrar = __newRegistrar;
+        newRegistrar = _newRegistrar;
+        hashRegistrar = _hashRegistrar;
+        ethRegistrar = _ethRegistrar;
     }
 
     function configureDomainFor(string name, uint price, uint referralFeePPM, address _owner, address _transfer) public onlyPreviousRegistrar {
         bytes32 label = keccak256(name);
 
-        // @todo run upgrade
+        uint256 value = deed(label).value();
+
+        hashRegistrar.transferRegistrars(label);
+        ethRegistrar.transfer(uint256(label), newRegistrar);
+
+        _owner.transfer(value);
 
         SubdomainMigrationRegistrar(newRegistrar).configureDomainFor(
             name,
@@ -29,6 +42,11 @@ contract SubdomainMigrationRegistrar {
             _owner,
             _transfer
         );
+    }
+
+    function deed(bytes32 label) internal view returns (Deed) {
+        var (,deedAddress,,,) = hashRegistrar.entries(label);
+        return Deed(deedAddress);
     }
 
 }

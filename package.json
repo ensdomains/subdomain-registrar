@@ -65,6 +65,7 @@
     }
   },
   "dependencies": {
+    "@ensdomains/ethregistrar": "1.1.4",
     "eth-ens-namehash": "^2.0.0",
     "html-loader": "^0.5.1",
     "idna-uts46": {
