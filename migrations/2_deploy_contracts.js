@@ -18,9 +18,9 @@ module.exports = function(deployer, network, accounts) {
         // Configuration of test domains
         return Promise.map(domainnames, async function(domain) {
           if(domain.registrar !== undefined) return;
-          await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
-          await dhr.transfer('0x' + sha3(domain.name), registrar.address);
-          await registrar.configureDomain(domain.name, 1e16, 100000);
+            await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
+            await dhr.transfer('0x' + sha3(domain.name), registrar.address);
+            await registrar.configureDomain(domain.name, 1e16, 100000);
         });
       }
     });
@@ -32,7 +32,7 @@ module.exports = function(deployer, network, accounts) {
     }).then(function(ens) {
       return deployer.deploy([[DummyHashRegistrar, ens.address], [TestResolver, ens.address]]).then(function() {
         // Set `resolver.eth` to resolve to the test resolver
-        return ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
+        return ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), accounts[0]);
       }).then(function() {
         return ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('resolver'), accounts[0]);
       }).then(function() {
@@ -42,7 +42,7 @@ module.exports = function(deployer, network, accounts) {
       }).then(function() {
         return DummyHashRegistrar.deployed();
       }).then(function(dhr) {
-        return ens.setSubnodeOwner(0, '0x' + sha3('eth'), dhr.address).then(function() {
+        return ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), dhr.address).then(function() {
           return stage2(ens, dhr);
         });
       });
