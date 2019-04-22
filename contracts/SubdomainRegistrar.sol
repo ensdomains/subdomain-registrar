@@ -1,6 +1,6 @@
 pragma solidity ^0.4.17;
 
-import "./ENS.sol";
+import "@ensdomains/ens/contracts/ENS.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
 import "./HashRegistrarSimplified.sol";

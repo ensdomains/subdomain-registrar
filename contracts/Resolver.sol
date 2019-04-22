@@ -1,6 +1,6 @@
 pragma solidity ^0.4.17;
 
-import "./ENS.sol";
+import "@ensdomains/ens/contracts/ENS.sol";
 
 /**
  * @dev A basic interface for ENS resolvers.
