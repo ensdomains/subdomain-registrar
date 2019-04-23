@@ -1,6 +1,6 @@
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
-var ENS = artifacts.require("ENS");
+var ENS = artifacts.require("@ensdomains/ens/contracts/ENSRegistry.sol");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 
 var namehash = require('eth-ens-namehash');
@@ -9,45 +9,40 @@ var Promise = require('bluebird');
 
 var domainnames = require('../app/js/domains.json');
 
-module.exports = function(deployer, network, accounts) {
-  function stage2(ens, dhr) {
-    return deployer.deploy(SubdomainRegistrar, ens.address).then(function() {
-      return SubdomainRegistrar.deployed();
-    }).then(function(registrar) {
-      if(dhr != undefined) {
-        // Configuration of test domains
-        return Promise.map(domainnames, async function(domain) {
-          if(domain.registrar !== undefined) return;
-          await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
-          await dhr.transfer('0x' + sha3(domain.name), registrar.address);
-          await registrar.configureDomain(domain.name, 1e16, 100000);
-        });
-      }
-    });
-  }
+module.exports = function (deployer, network, accounts) {
+    return deployer.then(async () => {
+        if (network == "test") {
 
-  if (network == "test") {
-    return deployer.deploy(ENS).then(function() {
-      return ENS.deployed();
-    }).then(function(ens) {
-      return deployer.deploy([[DummyHashRegistrar, ens.address], [TestResolver, ens.address]]).then(function() {
-        // Set `resolver.eth` to resolve to the test resolver
-        return ens.setSubnodeOwner(0, '0x' + sha3('eth'), accounts[0]);
-      }).then(function() {
-        return ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('resolver'), accounts[0]);
-      }).then(function() {
-        return TestResolver.deployed();
-      }).then(function(resolver) {
-        return ens.setResolver(namehash.hash('resolver.eth'), resolver.address);
-      }).then(function() {
-        return DummyHashRegistrar.deployed();
-      }).then(function(dhr) {
-        return ens.setSubnodeOwner(0, '0x' + sha3('eth'), dhr.address).then(function() {
-          return stage2(ens, dhr);
-        });
-      });
+            await deployer.deploy(ENS);
+
+            const ens = await ENS.deployed();
+            await deployer.deploy(DummyHashRegistrar, ens.address);
+            await deployer.deploy(TestResolver, ens.address);
+
+            await ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), accounts[0]);
+            await ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('resolver'), accounts[0]);
+
+            const resolver = await TestResolver.deployed();
+            await ens.setResolver(namehash.hash('resolver.eth'), resolver.address);
+
+            const dhr = await DummyHashRegistrar.deployed();
+            await ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), dhr.address);
+
+            await deployer.deploy(SubdomainRegistrar, ens.address);
+
+            const registrar = await SubdomainRegistrar.deployed();
+
+            // @todo figure out why this doesn't work
+            // return Promise.map(domainnames, async function(domain) {
+            //     if(domain.registrar !== undefined) return;
+            //     await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
+            //     await dhr.transfer('0x' + sha3(domain.name), registrar.address);
+            //     await registrar.configureDomain(domain.name, '10000000000000000', 100000);
+            // });
+
+        } else {
+            const ens = ENS.deployed();
+            await deployer.deploy(SubdomainRegistrar, ens.address);
+        }
     });
-  } else {
-    return ENS.deployed().then(stage2);
-   }
 };

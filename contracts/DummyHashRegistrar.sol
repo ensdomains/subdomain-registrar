@@ -1,10 +1,10 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.5.0;
 
-import "./ENS.sol";
+import "@ensdomains/ens/contracts/ENS.sol";
 import "./HashRegistrarSimplified.sol";
 
 contract DummyDeed is Deed {
-    function DummyDeed(address _owner) public {
+    constructor(address _owner) public {
         owner = _owner;
     }
 
@@ -20,7 +20,7 @@ contract DummyHashRegistrar is HashRegistrarSimplified {
 
     mapping (bytes32 => DummyDeed) deeds;
 
-    function DummyHashRegistrar(ENS _ens) public {
+    constructor(ENS _ens) public {
         ens = _ens;
         // namehash('eth')
         rootNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
