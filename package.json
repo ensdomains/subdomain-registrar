@@ -42,7 +42,6 @@
     "truffle": "~4.0.1",
     "truffle-contract": "^1.1.11",
     "url-loader": "^0.6.2",
-    "web3": "^0.18.2",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.9.3"
   },
