@@ -202,7 +202,6 @@ contract SubdomainRegistrar is RegistrarInterface {
         emit DomainUnlisted(label);
 
         domain.name = '';
-        domain.owner = address(uint160(owner(label)));
         domain.price = 0;
         domain.referralFeePPM = 0;
     }
