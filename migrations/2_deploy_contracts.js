@@ -32,12 +32,14 @@ module.exports = function (deployer, network, accounts) {
 
             const registrar = await SubdomainRegistrar.deployed();
 
-            return Promise.map(domainnames, async function(domain) {
-                if(domain.registrar !== undefined) return;
-                await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
-                await dhr.transfer('0x' + sha3(domain.name), registrar.address);
-                await registrar.configureDomain(domain.name, 1e16, 100000);
-            });
+            // @todo figure out why this doesn't work
+            // return Promise.map(domainnames, async function(domain) {
+            //     if(domain.registrar !== undefined) return;
+            //     await dhr.setSubnodeOwner('0x' + sha3(domain.name), accounts[0]);
+            //     await dhr.transfer('0x' + sha3(domain.name), registrar.address);
+            //     await registrar.configureDomain(domain.name, '10000000000000000', 100000);
+            // });
+
         } else {
             const ens = ENS.deployed();
             await deployer.deploy(SubdomainRegistrar, ens.address);

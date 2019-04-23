@@ -21,15 +21,15 @@ contract('SubdomainRegistrar', function (accounts) {
     });
 
     it('should set up a domain', async function () {
-        var tx = await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[0]);
+        tx = await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[0]);
+        console.log(tx);
         await dhr.transfer('0x' + sha3('test'), registrar.address);
-        assert.equal(tx.receipt.logs.length, 1);
 
         tx = await registrar.configureDomain("test", '10000000000000000', 100000);
         // assert.equal(tx.logs.length, 1);
         // assert.equal(tx.logs[0].event, 'DomainConfigured');
         // assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
-        //
+
         // var domainInfo = await registrar.query('0x' + sha3('test'), '');
         // assert.equal(domainInfo[0], 'test');
         // assert.equal(domainInfo[1].toNumber(), 1e17);
