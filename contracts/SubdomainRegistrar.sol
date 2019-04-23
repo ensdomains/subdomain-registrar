@@ -95,7 +95,7 @@ contract SubdomainRegistrar is RegistrarInterface {
     function owner(bytes32 label) public view returns (address) {
 
         if (domains[label].owner != address(0x0)) {
-            return address(domains[label].owner);
+            return domains[label].owner;
         }
 
         Deed domainDeed = deed(label);
