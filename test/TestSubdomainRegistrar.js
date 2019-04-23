@@ -25,8 +25,9 @@ contract('SubdomainRegistrar', function (accounts) {
         await dhr.transfer('0x' + sha3('test'), registrar.address);
 
         console.log(accounts[0]);
+        console.log(await registrar.owner('0x' + sha3('test')));
         tx = await registrar.configureDomain("test", '10000000000000000', 100000, {from: accounts[0]});
-        console.log(tx.logs);
+        console.log(tx.logs[0]);
         // assert.equal(tx.logs.length, 1);
         // assert.equal(tx.logs[0].event, 'DomainConfigured');
         // assert.equal(tx.logs[0].args.label, '0x' + sha3('test'));
