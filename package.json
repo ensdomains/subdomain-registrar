@@ -39,14 +39,13 @@
     "sass-loader": "^6.0.6",
     "solium": "^1.0.4",
     "style-loader": "^0.13.2",
-    "truffle": "~4.0.1",
+    "truffle": "^5.0.13",
     "truffle-contract": "^1.1.11",
     "url-loader": "^0.6.2",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.9.3"
   },
   "scripts": {
-    "pretest": "truffle compile",
     "test": "truffle test",
     "watch": "npm-watch",
     "build": "webpack",
