@@ -39,7 +39,7 @@
     "sass-loader": "^6.0.6",
     "solium": "^1.0.4",
     "style-loader": "^0.13.2",
-    "truffle": "~4.0.1",
+    "truffle": "^5.0.13",
     "truffle-contract": "^1.1.11",
     "url-loader": "^0.6.2",
     "web3": "^0.18.2",
@@ -47,7 +47,6 @@
     "webpack-dev-server": "^2.9.3"
   },
   "scripts": {
-    "pretest": "truffle compile",
     "test": "truffle test",
     "watch": "npm-watch",
     "build": "webpack",
@@ -66,26 +65,12 @@
   },
   "dependencies": {
     "@ensdomains/ethregistrar": "1.1.4",
+    "@ensdomains/ens": "^0.3.5",
     "eth-ens-namehash": "^2.0.0",
     "html-loader": "^0.5.1",
-    "idna-uts46": {
-      "integrity": "sha1-vgmLK3wcq/vvh6i4D2JvrDc2auo=",
-      "requires": {
-        "punycode": "2.1.0"
-      },
-      "resolved": "https://registry.npmjs.org/idna-uts46/-/idna-uts46-1.1.0.tgz",
-      "version": "1.1.0"
-    },
-    "js-sha3": {
-      "integrity": "sha1-W4n3enR3Z5h39YxKB1JAk0sflcA=",
-      "resolved": "https://registry.npmjs.org/js-sha3/-/js-sha3-0.6.1.tgz",
-      "version": "0.6.1"
-    },
-    "punycode": {
-      "integrity": "sha1-X4Y+3Im5bbCQdLrXlHvwkFbKTn0=",
-      "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.1.0.tgz",
-      "version": "2.1.0"
-    },
+    "idna-uts46": "1.1.0",
+    "js-sha3": "0.6.1",
+    "punycode": "2.1.0",
     "truffle-default-builder": "^2.0.0",
     "underscore": "^1.8.3"
   }
