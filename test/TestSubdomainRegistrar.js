@@ -2,7 +2,6 @@ var ENS = artifacts.require("ENSRegistry");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
-var Deed = artifacts.require("Deed");
 
 var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;

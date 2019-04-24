@@ -5,9 +5,7 @@ var SubdomainMigrationRegistrar = artifacts.require("SubdomainMigrationRegistrar
 var EthRegistrar = artifacts.require("BaseRegistrarImplementation");
 var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
-var Deed = artifacts.require("Deed");
 
-var namehash = require('eth-ens-namehash');
 var sha3 = require('js-sha3').keccak_256;
 
 contract('SubdomainRegistrar', function (accounts) {
