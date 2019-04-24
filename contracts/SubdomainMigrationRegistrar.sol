@@ -32,8 +32,7 @@ contract SubdomainMigrationRegistrar {
 
         hashRegistrar.transferRegistrars(label);
         
-        // @todo don't transfer, only approve
-        ethRegistrar.transferFrom(address(this), newRegistrar, uint256(label));
+        ethRegistrar.approve(newRegistrar, uint256(label));
 
         _owner.transfer(value);
 

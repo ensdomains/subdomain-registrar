@@ -1,10 +1,9 @@
 pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/ENS.sol";
+import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
-import "./HashRegistrarSimplified.sol";
-import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -43,7 +42,7 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
     address public migration;
 
     ENS public ens;
-    HashRegistrarSimplified public hashRegistrar;
+    BaseRegistrar public ethRegistrar;
 
     struct Domain {
         string name;
@@ -55,7 +54,7 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
     mapping (bytes32 => Domain) domains;
 
     modifier new_registrar() {
-        require(ens.owner(TLD_NODE) != address(hashRegistrar));
+        require(ens.owner(TLD_NODE) != address(ethRegistrar));
         _;
     }
 
@@ -78,7 +77,7 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
 
     constructor(ENS _ens) public {
         ens = _ens;
-        hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
+        ethRegistrar = BaseRegistrar(ens.owner(TLD_NODE));
         registrarOwner = msg.sender;
     }
 
@@ -92,17 +91,11 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
      * @return The address owning the deed.
      */
     function owner(bytes32 label) public view returns (address) {
-
         if (domains[label].owner != address(0x0)) {
             return domains[label].owner;
         }
 
-        Deed domainDeed = deed(label);
-        if (domainDeed.owner() != address(this)) {
-            return address(0x0);
-        }
-
-        return domainDeed.previousOwner(); // @todo figure this out
+        return ethRegistrar.ownerOf(uint256(label));
     }
 
     /**
@@ -151,6 +144,10 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
     function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public owner_only(keccak256(bytes(name))) {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
+
+        if (ethRegistrar.ownerOf(uint256(label)) != address(this)) {
+            ethRegistrar.transferFrom(msg.sender, address(this), uint256(label));
+        }
 
         if (domain.owner != _owner) {
             domain.owner = _owner;
@@ -307,9 +304,9 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        hashRegistrar.transfer(label, migration);
+        ethRegistrar.approve(migration, uint256(label));
 
-        SubdomainRegistrar(migration).configureDomainFor(
+        EthRegistrarSubdomainRegistrar(migration).configureDomainFor(
             domain.name,
             domain.price,
             domain.referralFeePPM,
@@ -328,10 +325,5 @@ contract EthRegistrarSubdomainRegistrar is RegistrarInterface {
 
     function payRent(bytes32 label, string calldata subdomain) external payable {
         revert();
-    }
-
-    function deed(bytes32 label) internal view returns (Deed) {
-        (, address deedAddress,,,) = hashRegistrar.entries(label);
-        return Deed(deedAddress);
     }
 }
