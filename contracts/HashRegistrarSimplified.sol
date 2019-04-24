@@ -1,10 +1,5 @@
 pragma solidity ^0.5.0;
 
-contract Deed {
-    address public owner;
-    address public previousOwner;
-}
-
 contract HashRegistrarSimplified {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 

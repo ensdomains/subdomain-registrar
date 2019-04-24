@@ -2,6 +2,11 @@ pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/ENS.sol";
 import "./HashRegistrarSimplified.sol";
+import "./Deed.sol";
+
+interface Registrar {
+    function acceptRegistrarTransfer(bytes32 label, address deed, uint) external;
+}
 
 contract DummyDeed is Deed {
     constructor(address _owner) public {
@@ -42,5 +47,13 @@ contract DummyHashRegistrar is HashRegistrarSimplified {
     function setSubnodeOwner(bytes32 label, address owner) public {
         ens.setSubnodeOwner(rootNode, label, owner);
         deeds[label] = new DummyDeed(owner);
+    }
+
+    function transferRegistrars(bytes32 label) external {
+        require(deeds[label].owner() == msg.sender);
+        address registrar = ens.owner(rootNode);
+        require(registrar != address(this));
+
+        Registrar(registrar).acceptRegistrarTransfer(label, address(deeds[label]), 0);
     }
 }

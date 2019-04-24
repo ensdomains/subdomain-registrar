@@ -26,12 +26,12 @@ contract SubdomainMigrationRegistrar {
     }
 
     function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public onlyPreviousRegistrar {
-        bytes32 label = keccak256(abi.encode(name));
+        bytes32 label = keccak256(abi.encodePacked(name));
 
         uint256 value = deed(label).value();
 
         hashRegistrar.transferRegistrars(label);
-        
+
         ethRegistrar.approve(newRegistrar, uint256(label));
 
         _owner.transfer(value);

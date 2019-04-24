@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./HashRegistrarSimplified.sol";
 import "./AbstractSubdomainRegistrar.sol";
+import "./Deed.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
