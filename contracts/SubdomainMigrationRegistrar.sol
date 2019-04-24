@@ -49,5 +49,4 @@ contract SubdomainMigrationRegistrar {
         (, address deedAddress,,,) = hashRegistrar.entries(label);
         return Deed(deedAddress);
     }
-
 }
