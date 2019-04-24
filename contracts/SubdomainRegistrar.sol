@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/ENS.sol";
-import "./Resolver.sol";
 import "./RegistrarInterface.sol";
 import "./HashRegistrarSimplified.sol";
+import "./AbstractSubdomainRegistrar.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -32,17 +32,7 @@ import "./HashRegistrarSimplified.sol";
  * register are controlled by this registrar, since calls to `register` will
  * fail if this is not the case.
  */
-contract SubdomainRegistrar is RegistrarInterface {
-
-    // namehash('eth')
-    bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
-
-    bool public stopped = false;
-    address public registrarOwner;
-    address public migration;
-
-    ENS public ens;
-    HashRegistrarSimplified public hashRegistrar;
+contract SubdomainRegistrar is AbstractSubdomainRegistrar {
 
     struct Domain {
         string name;
@@ -54,34 +44,7 @@ contract SubdomainRegistrar is RegistrarInterface {
 
     mapping (bytes32 => Domain) domains;
 
-    modifier new_registrar() {
-        require(ens.owner(TLD_NODE) != address(hashRegistrar));
-        _;
-    }
-
-    modifier owner_only(bytes32 label) {
-        require(owner(label) == msg.sender);
-        _;
-    }
-
-    modifier not_stopped() {
-        require(!stopped);
-        _;
-    }
-
-    modifier registrar_owner_only() {
-        require(msg.sender == registrarOwner);
-        _;
-    }
-
-    event TransferAddressSet(bytes32 indexed label, address addr);
-    event DomainTransferred(bytes32 indexed label, string name);
-
-    constructor(ENS _ens) public {
-        ens = _ens;
-        hashRegistrar = HashRegistrarSimplified(ens.owner(TLD_NODE));
-        registrarOwner = msg.sender;
-    }
+    constructor(ENS ens) AbstractSubdomainRegistrar(ens) public { }
 
     /**
      * @dev owner returns the address of the account that controls a domain.
@@ -93,7 +56,6 @@ contract SubdomainRegistrar is RegistrarInterface {
      * @return The address owning the deed.
      */
     function owner(bytes32 label) public view returns (address) {
-
         if (domains[label].owner != address(0x0)) {
             return domains[label].owner;
         }
@@ -116,27 +78,6 @@ contract SubdomainRegistrar is RegistrarInterface {
         bytes32 label = keccak256(bytes(name));
         emit OwnerChanged(label, domains[label].owner, newOwner);
         domains[label].owner = newOwner;
-    }
-
-    /**
-     * @dev Sets the resolver record for a name in ENS.
-     * @param name The name to set the resolver for.
-     * @param resolver The address of the resolver
-     */
-    function setResolver(string memory name, address resolver) public owner_only(keccak256(bytes(name))) {
-        bytes32 label = keccak256(bytes(name));
-        bytes32 node = keccak256(abi.encodePacked(TLD_NODE, label));
-        ens.setResolver(node, resolver);
-    }
-
-    /**
-     * @dev Configures a domain for sale.
-     * @param name The name to configure.
-     * @param price The price in wei to charge for subdomain registrations
-     * @param referralFeePPM The referral fee to offer, in parts per million
-     */
-    function configureDomain(string memory name, uint price, uint referralFeePPM) public {
-        configureDomainFor(name, price, referralFeePPM, msg.sender, address(0x0));
     }
 
     /**
@@ -278,32 +219,6 @@ contract SubdomainRegistrar is RegistrarInterface {
         emit NewRegistration(label, subdomain, subdomainOwner, referrer, domain.price);
     }
 
-    function doRegistration(bytes32 node, bytes32 label, address subdomainOwner, Resolver resolver) internal {
-        // Get the subdomain so we can configure it
-        ens.setSubnodeOwner(node, label, address(this));
-
-        bytes32 subnode = keccak256(abi.encodePacked(node, label));
-        // Set the subdomain's resolver
-        ens.setResolver(subnode, address(resolver));
-
-        // Set the address record on the resolver
-        resolver.setAddr(subnode, subdomainOwner);
-
-        // Pass ownership of the new subdomain to the registrant
-        ens.setOwner(subnode, subdomainOwner);
-    }
-
-    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
-        return (
-            (interfaceID == 0x01ffc9a7) // supportsInterface(bytes4)
-            || (interfaceID == 0xc1b15f5a) // RegistrarInterface
-        );
-    }
-
-    function rentDue(bytes32 label, string calldata subdomain) external view returns (uint timestamp) {
-        return 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-    }
-
     /**
      * @dev Upgrades the domain to a new registrar.
      * @param name The name of the domain to transfer.
@@ -316,25 +231,8 @@ contract SubdomainRegistrar is RegistrarInterface {
 
         delete domains[label];
 
-        hashRegistrar.transfer(label, transfer);
+        HashRegistrarSimplified(registrar).transfer(label, transfer);
         emit DomainTransferred(label, name);
-    }
-
-
-    /**
-     * @dev Stops the registrar, disabling configuring of new domains.
-     */
-    function stop() public not_stopped registrar_owner_only {
-        stopped = true;
-    }
-
-    /**
-     * @dev Sets the address where domains are migrated to.
-     * @param _migration Address of the new registrar.
-     */
-    function setMigrationAddress(address _migration) public registrar_owner_only {
-        require(stopped);
-        migration = _migration;
     }
 
     /**
@@ -348,7 +246,7 @@ contract SubdomainRegistrar is RegistrarInterface {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        hashRegistrar.transfer(label, migration);
+        HashRegistrarSimplified(registrar).transfer(label, migration);
 
         SubdomainRegistrar(migration).configureDomainFor(
             domain.name,
@@ -363,16 +261,12 @@ contract SubdomainRegistrar is RegistrarInterface {
         emit DomainTransferred(label, name);
     }
 
-    function transferOwnership(address newOwner) public registrar_owner_only {
-        registrarOwner = newOwner;
-    }
-
     function payRent(bytes32 label, string calldata subdomain) external payable {
         revert();
     }
 
     function deed(bytes32 label) internal view returns (Deed) {
-        (, address deedAddress,,,) = hashRegistrar.entries(label);
+        (, address deedAddress,,,) = HashRegistrarSimplified(registrar).entries(label);
         return Deed(deedAddress);
     }
 }
