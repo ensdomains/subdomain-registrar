@@ -1,10 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "@ensdomains/ens/contracts/HashRegistrar.sol";
-
-interface BaseRegistrar {
-    function transferFrom(address, address, uint256) external;
-}
+import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 
 contract SubdomainMigrationRegistrar {
 
