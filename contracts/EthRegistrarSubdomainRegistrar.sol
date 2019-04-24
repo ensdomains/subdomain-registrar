@@ -1,9 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "@ensdomains/ens/contracts/ENS.sol";
 import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
-import "./Resolver.sol";
-import "./RegistrarInterface.sol";
 import "./AbstractSubdomainRegistrar.sol";
 
 /**
@@ -60,7 +57,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
             return domains[label].owner;
         }
 
-        return ethRegistrar.ownerOf(uint256(label));
+        return BaseRegistrar(registrar).ownerOf(uint256(label));
     }
 
     /**
@@ -89,8 +86,8 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        if (ethRegistrar.ownerOf(uint256(label)) != address(this)) {
-            ethRegistrar.transferFrom(msg.sender, address(this), uint256(label));
+        if (BaseRegistrar(registrar).ownerOf(uint256(label)) != address(this)) {
+            BaseRegistrar(registrar).transferFrom(msg.sender, address(this), uint256(label));
         }
 
         if (domain.owner != _owner) {
@@ -210,7 +207,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        ethRegistrar.approve(migration, uint256(label));
+        BaseRegistrar(registrar).approve(migration, uint256(label));
 
         EthRegistrarSubdomainRegistrar(migration).configureDomainFor(
             domain.name,
