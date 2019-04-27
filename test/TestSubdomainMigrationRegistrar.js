@@ -25,7 +25,7 @@ contract('SubdomainRegistrar', function (accounts) {
 
     });
 
-    it.only('should migrate domain', async function () {
+    it('should migrate domain', async function () {
         tx = await dhr.setSubnodeOwner('0x' + sha3('test'), accounts[0]);
         await dhr.transfer('0x' + sha3('test'), oldRegistrar.address);
 
