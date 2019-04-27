@@ -1,8 +1,8 @@
 pragma solidity ^0.5.0;
 
-import "./HashRegistrarSimplified.sol";
 import "./AbstractSubdomainRegistrar.sol";
 import "@ensdomains/ens/contracts/Deed.sol";
+import "@ensdomains/ens/contracts/Registrar.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -237,7 +237,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
 
         delete domains[label];
 
-        HashRegistrarSimplified(registrar).transfer(label, transfer);
+        Registrar(registrar).transfer(label, address(uint160((transfer))));
         emit DomainTransferred(label, name);
     }
 
@@ -252,7 +252,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        HashRegistrarSimplified(registrar).transfer(label, migration);
+        Registrar(registrar).transfer(label, address(uint160((migration))));
 
         SubdomainRegistrar(migration).configureDomainFor(
             domain.name,
@@ -272,7 +272,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
     }
 
     function deed(bytes32 label) internal view returns (Deed) {
-        (, address deedAddress,,,) = HashRegistrarSimplified(registrar).entries(label);
+        (, address deedAddress,,,) = Registrar(registrar).entries(label);
         return Deed(deedAddress);
     }
 }
