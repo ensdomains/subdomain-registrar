@@ -3,15 +3,10 @@ const SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 const HashRegistrar = artifacts.require("HashRegistrar");
 const TestResolver = artifacts.require("TestResolver");
 
+const utils = require('./helpers/Utils');
+
 var namehash = require('eth-ens-namehash');
 const sha3 = require('web3-utils').sha3;
-var Promise = require('bluebird');
-const { evm } = require('@ensdomains/test-utils');
-
-const toBN = require('web3-utils').toBN;
-
-const DAYS = 24 * 60 * 60;
-const SALT = sha3('foo');
 
 contract('SubdomainRegistrar', function (accounts) {
     var ens = null;
@@ -26,23 +21,8 @@ contract('SubdomainRegistrar', function (accounts) {
         resolver = await TestResolver.deployed();
     });
 
-    async function registerOldNames(names, account) {
-        var hashes = names.map(sha3);
-        var value = toBN(10000000000000000);
-        var bidHashes = await Promise.map(hashes, (hash) => dhr.shaBid(hash, account, value, SALT));
-        await dhr.startAuctions(hashes);
-        await Promise.map(bidHashes, (h) => dhr.newBid(h, {value: value, from: account}));
-        await evm.advanceTime(3 * DAYS + 1);
-        await Promise.map(hashes, (hash) => dhr.unsealBid(hash, value, SALT, {from: account}));
-        await evm.advanceTime(2 * DAYS + 1);
-        await Promise.map(hashes, (hash) => dhr.finalizeAuction(hash, {from: account}));
-        for(var name of names) {
-            assert.equal(await ens.owner(namehash.hash(name + '.eth')), account);
-        }
-    }
-
     it('should set up a domain', async function () {
-        await registerOldNames(['test'], accounts[0]);
+        await utils.registerOldNames(['test'], accounts[0], dhr, ens);
 
         await dhr.transfer(sha3('test'), registrar.address);
 
@@ -160,7 +140,7 @@ contract('SubdomainRegistrar', function (accounts) {
     });
 
     it("should allow migration if emergency stopped", async function () {
-        await registerOldNames(['migration'], accounts[1]);
+        await utils.registerOldNames(['migration'], accounts[1], dhr, ens);
 
         await dhr.transfer(sha3('migration'), registrar.address, {from: accounts[1]});
         await registrar.configureDomain("migration", '1000000000000000000', 0, {from: accounts[1]});
