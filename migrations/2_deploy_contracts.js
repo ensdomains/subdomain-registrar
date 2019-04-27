@@ -1,4 +1,4 @@
-var DummyHashRegistrar = artifacts.require("DummyHashRegistrar");
+var HashRegistrar = artifacts.require("HashRegistrar");
 var TestResolver = artifacts.require("TestResolver");
 var ENS = artifacts.require("@ensdomains/ens/contracts/ENSRegistry.sol");
 var SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
@@ -16,7 +16,8 @@ module.exports = function (deployer, network, accounts) {
             await deployer.deploy(ENS);
 
             const ens = await ENS.deployed();
-            await deployer.deploy(DummyHashRegistrar, ens.address);
+
+            await deployer.deploy(HashRegistrar, ens.address, namehash.hash('eth'), 1493895600);
             await deployer.deploy(TestResolver, ens.address);
 
             await ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), accounts[0]);
@@ -25,7 +26,7 @@ module.exports = function (deployer, network, accounts) {
             const resolver = await TestResolver.deployed();
             await ens.setResolver(namehash.hash('resolver.eth'), resolver.address);
 
-            const dhr = await DummyHashRegistrar.deployed();
+            const dhr = await HashRegistrar.deployed();
             await ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), dhr.address);
 
             await deployer.deploy(SubdomainRegistrar, ens.address);

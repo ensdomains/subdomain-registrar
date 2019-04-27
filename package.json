@@ -44,7 +44,10 @@
     "url-loader": "^0.6.2",
     "web3": "^0.18.2",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.9.3"
+    "webpack-dev-server": "^2.9.3",
+    "web3-utils": "^1.0.0-beta.48",
+    "bluebird": "^3.5.3",
+    "@ensdomains/test-utils": "^1.2.0"
   },
   "scripts": {
     "test": "truffle test",
