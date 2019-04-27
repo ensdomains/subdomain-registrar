@@ -17,11 +17,6 @@ contract AbstractSubdomainRegistrar is RegistrarInterface {
 
     ENS public ens;
 
-    modifier new_registrar() {
-        require(ens.owner(TLD_NODE) != address(registrar));
-        _;
-    }
-
     modifier owner_only(bytes32 label) {
         require(owner(label) == msg.sender);
         _;
@@ -37,7 +32,6 @@ contract AbstractSubdomainRegistrar is RegistrarInterface {
         _;
     }
 
-    event TransferAddressSet(bytes32 indexed label, address addr);
     event DomainTransferred(bytes32 indexed label, string name);
 
     constructor(ENS _ens) public {

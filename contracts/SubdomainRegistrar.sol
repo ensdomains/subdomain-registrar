@@ -41,7 +41,14 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         uint referralFeePPM;
     }
 
+    modifier new_registrar() {
+        require(ens.owner(TLD_NODE) != address(registrar));
+        _;
+    }
+
     mapping (bytes32 => Domain) domains;
+
+    event TransferAddressSet(bytes32 indexed label, address addr);
 
     constructor(ENS ens) AbstractSubdomainRegistrar(ens) public { }
 

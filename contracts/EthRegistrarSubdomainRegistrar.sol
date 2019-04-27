@@ -94,7 +94,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
             domain.owner = _owner;
         }
 
-        if (keccak256(abi.encodePacked(domain.name)) != label) {
+        if (keccak256(bytes(domain.name)) != label) {
             // New listing
             domain.name = name;
         }
@@ -160,7 +160,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
         Domain storage domain = domains[label];
 
         // Domain must be available for registration
-        require(keccak256(abi.encodePacked(domain.name)) == label);
+        require(keccak256(bytes(domain.name)) == label);
 
         // User must have paid enough
         require(msg.value >= domain.price);
@@ -172,7 +172,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
 
         // Send any referral fee
         uint256 total = domain.price;
-        if (domain.referralFeePPM * domain.price > 0 && referrer != address(0x0) && referrer != domain.owner) {
+        if (domain.referralFeePPM > 0 && referrer != address(0x0) && referrer != domain.owner) {
             uint256 referralFee = (domain.price * domain.referralFeePPM) / 1000000;
             referrer.transfer(referralFee);
             total -= referralFee;
