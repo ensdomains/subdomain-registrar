@@ -49,11 +49,10 @@ contract('SubdomainRegistrar', function (accounts) {
     }
 
 
-    it.only('should migrate domain', async function () {
+    it('should migrate domain', async function () {
         await registerOldNames(["yolo"], accounts[0]);
 
-        console.log(await ens.owner('0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae'));
-        console.log(dhr.address);
+        await evm.advanceTime(28 * DAYS + 1);
 
         await dhr.transfer(sha3('yolo'), oldRegistrar.address);
 

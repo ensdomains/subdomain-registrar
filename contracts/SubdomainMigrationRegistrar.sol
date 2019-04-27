@@ -11,19 +11,26 @@ contract SubdomainMigrationRegistrar {
     BaseRegistrar public ethRegistrar;
 
     address public previousRegistrar;
-    address public newRegistrar;
+    address payable public newRegistrar;
 
     modifier onlyPreviousRegistrar {
         require(msg.sender == previousRegistrar);
         _;
     }
 
-    constructor(address _previousRegistrar, address _newRegistrar, HashRegistrar _hashRegistrar, BaseRegistrar _ethRegistrar) public {
+    constructor(
+        address _previousRegistrar,
+        address payable _newRegistrar,
+        HashRegistrar _hashRegistrar,
+        BaseRegistrar _ethRegistrar
+    ) public {
         previousRegistrar = _previousRegistrar;
         newRegistrar = _newRegistrar;
         hashRegistrar = _hashRegistrar;
         ethRegistrar = _ethRegistrar;
     }
+
+    function () external payable { }
 
     function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public onlyPreviousRegistrar {
         bytes32 label = keccak256(bytes(name));
