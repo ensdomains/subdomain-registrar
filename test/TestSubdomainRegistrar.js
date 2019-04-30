@@ -19,6 +19,7 @@ contract('SubdomainRegistrar', function (accounts) {
         ens = await ENS.deployed();
         dhr = await HashRegistrar.deployed();
         resolver = await TestResolver.deployed();
+        await ens.setSubnodeOwner('0x0', sha3('eth'), dhr.address);
     });
 
     it('should set up a domain', async function () {
@@ -26,7 +27,7 @@ contract('SubdomainRegistrar', function (accounts) {
 
         await dhr.transfer(sha3('test'), registrar.address);
 
-        tx = await registrar.configureDomain("test", '10000000000000000', 100000, {from: accounts[0]});
+        tx = await registrar.configureDomain('test', '10000000000000000', 100000, {from: accounts[0]});
         assert.equal(tx.logs.length, 1);
         assert.equal(tx.logs[0].event, 'DomainConfigured');
         assert.equal(tx.logs[0].args.label, sha3('test'));
@@ -111,7 +112,7 @@ contract('SubdomainRegistrar', function (accounts) {
     });
 
     it("should allow an owner to relist a domain", async function () {
-        tx = await registrar.configureDomain("test", '10000000000000000', 100000);
+        tx = await registrar.configureDomain('test', '10000000000000000', 100000);
         assert.equal(tx.logs.length, 1);
         assert.equal(tx.logs[0].event, 'DomainConfigured');
         assert.equal(tx.logs[0].args.label, sha3('test'));
@@ -124,7 +125,7 @@ contract('SubdomainRegistrar', function (accounts) {
     });
 
     it("should allow an owner to set a transfer address", async function () {
-        tx = await registrar.setTransferAddress("test", accounts[2], {from: accounts[0]});
+        tx = await registrar.setTransferAddress('test', accounts[2], {from: accounts[0]});
         assert.equal(tx.logs.length, 1);
         assert.equal(tx.logs[0].event, 'TransferAddressSet');
         assert.equal(tx.logs[0].args.addr, accounts[2]);

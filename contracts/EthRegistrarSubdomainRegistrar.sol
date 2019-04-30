@@ -48,7 +48,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
      *      Initially this is a null address. If the name has been
      *      transferred to this contract, then the internal mapping is consulted
      *      to determine who controls it. If the owner is not set,
-     *      the previous owner of the deed is returned.
+     *      the owner of the domain in the Registrar is returned.
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
