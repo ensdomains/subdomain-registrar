@@ -1,8 +1,7 @@
 pragma solidity ^0.5.0;
 
+import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 import "./AbstractSubdomainRegistrar.sol";
-import "@ensdomains/ens/contracts/Deed.sol";
-import "@ensdomains/ens/contracts/Registrar.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -31,24 +30,16 @@ import "@ensdomains/ens/contracts/Registrar.sol";
  * register are controlled by this registrar, since calls to `register` will
  * fail if this is not the case.
  */
-contract SubdomainRegistrar is AbstractSubdomainRegistrar {
+contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
 
     struct Domain {
         string name;
         address payable owner;
-        address transferAddress;
         uint price;
         uint referralFeePPM;
     }
 
-    modifier new_registrar() {
-        require(ens.owner(TLD_NODE) != address(registrar));
-        _;
-    }
-
     mapping (bytes32 => Domain) domains;
-
-    event TransferAddressSet(bytes32 indexed label, address addr);
 
     constructor(ENS ens) AbstractSubdomainRegistrar(ens) public { }
 
@@ -57,7 +48,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
      *      Initially this is a null address. If the name has been
      *      transferred to this contract, then the internal mapping is consulted
      *      to determine who controls it. If the owner is not set,
-     *      the previous owner of the deed is returned.
+     *      the owner of the domain in the Registrar is returned.
      * @param label The label hash of the deed to check.
      * @return The address owning the deed.
      */
@@ -66,12 +57,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
             return domains[label].owner;
         }
 
-        Deed domainDeed = deed(label);
-        if (domainDeed.owner() != address(this)) {
-            return address(0x0);
-        }
-
-        return domainDeed.previousOwner();
+        return BaseRegistrar(registrar).ownerOf(uint256(label));
     }
 
     /**
@@ -100,14 +86,15 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        // Don't allow changing the transfer address once set. Treat 0 as "don't change" for convenience.
-        require(domain.transferAddress == address(0x0) || _transfer == address(0x0) || domain.transferAddress == _transfer);
+        if (BaseRegistrar(registrar).ownerOf(uint256(label)) != address(this)) {
+            BaseRegistrar(registrar).transferFrom(msg.sender, address(this), uint256(label));
+        }
 
         if (domain.owner != _owner) {
             domain.owner = _owner;
         }
 
-        if (keccak256(abi.encodePacked(domain.name)) != label) {
+        if (keccak256(bytes(domain.name)) != label) {
             // New listing
             domain.name = name;
         }
@@ -115,27 +102,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         domain.price = price;
         domain.referralFeePPM = referralFeePPM;
 
-        if (domain.transferAddress != _transfer && _transfer != address(0x0)) {
-            domain.transferAddress = _transfer;
-            emit TransferAddressSet(label, _transfer);
-        }
-
         emit DomainConfigured(label);
-    }
-
-    /**
-     * @dev Sets the transfer address of a domain for after an ENS update.
-     * @param name The name for which to set the transfer address.
-     * @param transfer The address to transfer to.
-     */
-    function setTransferAddress(string memory name, address transfer) public owner_only(keccak256(bytes(name))) {
-        bytes32 label = keccak256(bytes(name));
-        Domain storage domain = domains[label];
-
-        require(domain.transferAddress == address(0x0));
-
-        domain.transferAddress = transfer;
-        emit TransferAddressSet(label, transfer);
     }
 
     /**
@@ -193,7 +160,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         Domain storage domain = domains[label];
 
         // Domain must be available for registration
-        require(keccak256(abi.encodePacked(domain.name)) == label);
+        require(keccak256(bytes(domain.name)) == label);
 
         // User must have paid enough
         require(msg.value >= domain.price);
@@ -205,7 +172,7 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
 
         // Send any referral fee
         uint256 total = domain.price;
-        if (domain.referralFeePPM * domain.price > 0 && referrer != address(0x0) && referrer != domain.owner) {
+        if (domain.referralFeePPM > 0 && referrer != address(0x0) && referrer != domain.owner) {
             uint256 referralFee = (domain.price * domain.referralFeePPM) / 1000000;
             referrer.transfer(referralFee);
             total -= referralFee;
@@ -225,20 +192,8 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         emit NewRegistration(label, subdomain, subdomainOwner, referrer, domain.price);
     }
 
-    /**
-     * @dev Upgrades the domain to a new registrar.
-     * @param name The name of the domain to transfer.
-     */
-    function upgrade(string memory name) public owner_only(keccak256(bytes(name))) new_registrar {
-        bytes32 label = keccak256(bytes(name));
-        address transfer = domains[label].transferAddress;
-
-        require(transfer != address(0x0));
-
-        delete domains[label];
-
-        Registrar(registrar).transfer(label, address(uint160((transfer))));
-        emit DomainTransferred(label, name);
+    function rentDue(bytes32 label, string calldata subdomain) external view returns (uint timestamp) {
+        return 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
     }
 
     /**
@@ -252,14 +207,14 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
-        Registrar(registrar).transfer(label, address(uint160((migration))));
+        BaseRegistrar(registrar).approve(migration, uint256(label));
 
-        SubdomainRegistrar(migration).configureDomainFor(
+        EthRegistrarSubdomainRegistrar(migration).configureDomainFor(
             domain.name,
             domain.price,
             domain.referralFeePPM,
             domain.owner,
-            domain.transferAddress
+            address(0x0)
         );
 
         delete domains[label];
@@ -269,10 +224,5 @@ contract SubdomainRegistrar is AbstractSubdomainRegistrar {
 
     function payRent(bytes32 label, string calldata subdomain) external payable {
         revert();
-    }
-
-    function deed(bytes32 label) internal view returns (Deed) {
-        (, address deedAddress,,,) = Registrar(registrar).entries(label);
-        return Deed(deedAddress);
     }
 }
