@@ -88,6 +88,7 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
 
         if (BaseRegistrar(registrar).ownerOf(uint256(label)) != address(this)) {
             BaseRegistrar(registrar).transferFrom(msg.sender, address(this), uint256(label));
+            BaseRegistrar(registrar).reclaim(uint256(label), address(this));
         }
 
         if (domain.owner != _owner) {
