@@ -14,12 +14,13 @@ const { evm } = require('@ensdomains/test-utils');
 
 const DAYS = 24 * 60 * 60;
 
-contract('SubdomainRegistrar', function (accounts) {
+contract('SubdomainMigrationRegistrar', function (accounts) {
     var ens = null;
     var dhr = null;
     var oldRegistrar = null;
     var resolver = null;
     var ethregistrar = null;
+    var finalRegistrar = null;
 
     before(async function () {
         oldRegistrar = await SubdomainRegistrar.deployed();
@@ -51,7 +52,7 @@ contract('SubdomainRegistrar', function (accounts) {
 
         await ens.setSubnodeOwner('0x0', sha3('eth'), ethregistrar.address);
 
-        let finalRegistrar = await EthRegistrarSubdomainRegistrar.new(ens.address);
+        finalRegistrar = await EthRegistrarSubdomainRegistrar.new(ens.address);
 
         let migration = await SubdomainMigrationRegistrar.new(
             oldRegistrar.address,
@@ -70,5 +71,26 @@ contract('SubdomainRegistrar', function (accounts) {
         assert.equal(domainInfo[1], '10000000000000000');
         assert.equal(domainInfo[2].toNumber(), 0);
         assert.equal(domainInfo[3].toNumber(), 100000);
+
+        assert.equal(await ens.owner(namehash.hash('yolo.eth')), finalRegistrar.address);
+    });
+
+    it("should register subdomains after migration", async function () {
+        var tx = await finalRegistrar.register(sha3('yolo'), 'foo', accounts[1], accounts[2], resolver.address, {
+            from: accounts[1],
+            value: '10000000000000000'
+        });
+        assert.equal(tx.logs.length, 1);
+        assert.equal(tx.logs[0].event, 'NewRegistration');
+        assert.equal(tx.logs[0].args.label, sha3('yolo'));
+        assert.equal(tx.logs[0].args.subdomain, 'foo');
+        assert.equal(tx.logs[0].args.owner, accounts[1]);
+        assert.equal(tx.logs[0].args.price, '10000000000000000');
+        assert.equal(tx.logs[0].args.referrer, accounts[2]);
+
+        // Check the new owner gets their domain
+        assert.equal(await ens.owner(namehash.hash('foo.yolo.eth')), accounts[1]);
+        assert.equal(await ens.resolver(namehash.hash('foo.yolo.eth')), resolver.address);
+        assert.equal(await resolver.addr(namehash.hash('foo.yolo.eth')), accounts[1]);
     });
 });
