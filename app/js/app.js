@@ -9,7 +9,7 @@ import { default as $ } from 'jquery';
 import { keccak_256 as sha3 } from 'js-sha3';
 import { default as Promise } from 'bluebird';
 
-import subdomainregistrar_artifacts from '../../build/contracts/SubdomainRegistrar.json';
+import subdomainregistrar_artifacts from '../../build/contracts/EthRegistrarSubdomainRegistrar.json';
 import ens_artifacts from '../../build/contracts/ENS.json';
 import domainnames from './domains.json';
 
@@ -21,24 +21,6 @@ var ENS = contract(ens_artifacts);
 Promise.config({cancellation: true});
 
 var registrarVersions = {
-  "0.9": {
-    // v0.9 is identical to 1.0, but the referrer and resolver arguments are swapped on `register`.
-    query: async function(domain, subdomain) {
-      return domain.contract.query('0x' + sha3(domain.name), subdomain);
-    },
-    register: async function(domain, subdomain, ownerAddress, referrerAddress, resolverAddress, value) {
-      return domain.contract.register(
-        '0x' + sha3(domain.name),
-        subdomain,
-        ownerAddress,
-        resolverAddress,
-        referrerAddress,
-        {
-          from: ownerAddress,
-          value: value,
-        });
-    }
-  },
   "1.0": {
     query: async function(domain, subdomain) {
       return domain.contract.query('0x' + sha3(domain.name), subdomain);
@@ -86,6 +68,7 @@ window.App = {
       // Get the address of the current public resolver
       self.resolverAddress = await self.ens.resolver(namehash.hash('resolver.eth'));
     } catch(e) {
+      console.log(e);
       $("#wrongnetworkmodal").modal('show');
     }
 
@@ -208,11 +191,12 @@ window.App = {
   }
 };
 
-window.addEventListener('load', function() {
+window.addEventListener('load', async function() {
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-  if (typeof web3 !== 'undefined') {
+  if (typeof ethereum !== 'undefined') {
     // Use Mist/MetaMask's provider
-    window.web3 = new Web3(web3.currentProvider);
+    await ethereum.enable();
+    window.web3 = new Web3(ethereum);
     window.readOnly = false;
   } else {
     window.web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/Rg6BrBl8vIqJBc7AlL9h"));

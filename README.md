@@ -35,7 +35,7 @@ solium --dir ./contracts
 ### Running the dapp
 
 ```
-testrpc &
+ganache-cli &
 truffle deploy
 npm run dev
 ```
@@ -77,7 +77,7 @@ The intended workflow is as follows:
  4. The domain owner calls `upgrade`, transferring ownership and performing the upgrade process.
 
 ## Built With
-* [Truffle](https://github.com/trufflesuite/truffle) - Ethereum development environment 
+* [Truffle](https://github.com/trufflesuite/truffle) - Ethereum development environment
 
 
 ## Authors
@@ -90,4 +90,3 @@ See also the list of [contributors](https://github.com/ensdomains/subdomain-regi
 ## License
 
 This project is licensed under the BSD 2-clause "Simplified" License - see the [LICENSE](LICENSE) file for details
-
