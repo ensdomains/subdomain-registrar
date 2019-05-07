@@ -1,8 +1,13 @@
 [
+  {"name": "accepte", "version": "1.0"},
+  {"name": "asksfor", "version": "1.0"},
   {"name": "atleeroy", "version": "1.0"},
   {"name": "atpeepeth", "version": "1.0"},
+  {"name": "begsfor", "version": "1.0"},
   {"name": "blockchainboss", "version": "1.0"},
   {"name": "britishblockchain", "version": "1.0"},
+  {"name": "deserves", "version": "1.0"},
+  {"name": "etherbase", "version": "1.0"},
   {"name": "gimmethe", "version": "1.0"},
   {"name": "thecryptoguy", "version": "1.0"},
   {"name": "wantsome", "version": "1.0"},
