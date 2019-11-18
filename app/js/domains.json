@@ -17,6 +17,7 @@
   {"name": "etherbase", "version": "1.0"},
   {"name": "gimmethe", "version": "1.0"},
   {"name": "iscoin", "version": "1.0"}, 
+  {"name": "isfund", "version": "1.0"},  
   {"name": "ismoney", "version": "1.0"},
   {"name": "paynonym", "version": "1.0"},
   {"name": "sendmecrypto", "version": "1.0"},
