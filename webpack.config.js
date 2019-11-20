@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: ['bootstrap-loader', './app/js/app.js'],
@@ -9,6 +10,15 @@ module.exports = {
     filename: 'app.js'
   },
   plugins: [
+	new HtmlPlugin({
+		template: 'app/index.html',
+		filename: 'index.html',
+		minify: {
+		  collapseWhitespace: true
+		},
+		hash: true,
+		inject: 'head'
+	}),
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
       { from: './app/index.html', to: "index.html" },
