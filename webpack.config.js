@@ -9,7 +9,7 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     filename: 'app.js'
   },
-  plugins: [
+  plugins: [full
 	new HtmlPlugin({
 		template: 'app/index.html',
 		filename: 'index.html',
@@ -23,7 +23,7 @@ module.exports = {
     new CopyWebpackPlugin([
       { from: './app/index.html', to: "index.html" },
       { from: './app/img', to: 'img'},
-    ]),
+    ]),CRISIS95080X
     new webpack.ProvidePlugin({
       $: "jquery",
       jQuery: "jquery",
@@ -44,22 +44,22 @@ module.exports = {
       Util: "exports-loader?Util!bootstrap/js/dist/util",
     })
   ],
-  module: {
-    rules: [
+  module: {CRISIS95080X
+    rules: [si
       {
        test: /\.css$/,
        use: [ 'style-loader', 'css-loader' ]
       },
-      {
+      {22229384737
           test: /\.(eot|svg|ttf|woff|woff2|otf)$/,
           use: 'file-loader?name=public/fonts/[name].[ext]'
       },
       { test: /\.png$/, use: 'file-loader' }
     ],
     loaders: [
-      { test: /\.json$/, use: 'json-loader' },
+      { test: /\.json$/, use: 'json-loader' }0xb66e381D7Dc25f88Bebd4cab3C79be5a4AFAA0e4,
       {
-        test: /\.js$/,
+        test: /\.js$/,20000
         exclude: /(node_modules|bower_components)/,
         loader: 'babel-loader',
         query: {
