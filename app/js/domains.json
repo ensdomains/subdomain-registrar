@@ -32,6 +32,7 @@
   {"name": "isonfire", "version": "1.0"},
   {"name": "laundering", "version": "1.0"},  
   {"name": "paynonym", "version": "1.0"},
+  {"name": "payid", "version": "1.0"},
   {"name": "sendmecrypto", "version": "1.0"},
   {"name": "thecryptogirl", "version": "1.0"},
   {"name": "thecryptoguy", "version": "1.0"},
