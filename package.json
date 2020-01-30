@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/subdomain-registrar",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "requires": true,
   "license": "BSD-2-Clause",
   "repository": {
@@ -56,6 +56,7 @@
     "watch": "npm-watch",
     "build": "webpack",
     "dev": "webpack-dev-server",
+    "prepublishOnly": "truffle compile && truffle networks --clean",
     "lint": "solium --dir ./contracts"
   },
   "watch": {
@@ -70,7 +71,7 @@
   },
   "dependencies": {
     "@ensdomains/ens": "^0.4.0",
-    "@ensdomains/ethregistrar": "^1.2.9",
+    "@ensdomains/ethregistrar": "^2.0.0",
     "eth-ens-namehash": "^2.0.0",
     "html-loader": "^0.5.1",
     "idna-uts46": "1.1.0",
