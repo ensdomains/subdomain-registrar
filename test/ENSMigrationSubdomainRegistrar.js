@@ -1,7 +1,6 @@
 const ENS = artifacts.require("ENSRegistry");
-const EthRegistrarSubdomainRegistrar = artifacts.require("EthRegistrarSubdomainRegistrar");
-const HashRegistrar = artifacts.require("HashRegistrar");
-const EthRegistrar = artifacts.require("OldBaseRegistrarImplementation");
+const ENSMigrationSubdomainRegistrar = artifacts.require("ENSMigrationSubdomainRegistrar");
+const EthRegistrar = artifacts.require("BaseRegistrarImplementation");
 const TestResolver = artifacts.require("TestResolver");
 
 const utils = require('./helpers/Utils');
@@ -11,7 +10,7 @@ const sha3 = require('web3-utils').sha3;
 
 const DAYS = 24 * 60 * 60;
 
-contract('EthRegistrarSubdomainRegistrar', function (accounts) {
+contract('ENSMigrationSubdomainRegistrar', function (accounts) {
     var ens = null;
     var ethregistrar = null;
     var registrar = null;
@@ -19,21 +18,18 @@ contract('EthRegistrarSubdomainRegistrar', function (accounts) {
 
     before(async function () {
       ens = await ENS.deployed();
-      dhr = await HashRegistrar.deployed();
       resolver = await TestResolver.deployed();
 
       ethregistrar = await EthRegistrar.new(
           ens.address,
-          dhr.address,
           namehash.hash('eth'),
-          Math.floor(Date.now() / 1000) * 2
       );
       await ethregistrar.addController(accounts[0]);
       await ens.setSubnodeOwner('0x0', sha3('eth'), ethregistrar.address);
 
       resolver = await TestResolver.deployed();
 
-      registrar = await EthRegistrarSubdomainRegistrar.new(ens.address);
+      registrar = await ENSMigrationSubdomainRegistrar.new(ens.address);
     });
 
     it('should set up a domain', async function () {
@@ -144,7 +140,7 @@ contract('EthRegistrarSubdomainRegistrar', function (accounts) {
         await ethregistrar.approve(registrar.address, sha3('migration'), {from: accounts[1]});
         await registrar.configureDomain("migration", '1000000000000000000', 0, {from: accounts[1]});
 
-        let newRegistrar = await EthRegistrarSubdomainRegistrar.new(ens.address);
+        let newRegistrar = await ENSMigrationSubdomainRegistrar.new(ens.address);
 
         await registrar.stop();
         await registrar.setMigrationAddress(newRegistrar.address);

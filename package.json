@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/subdomain-registrar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "requires": true,
   "license": "BSD-2-Clause",
   "repository": {
@@ -69,8 +69,8 @@
     }
   },
   "dependencies": {
-    "@ensdomains/ethregistrar": "^1.2.2",
-    "@ensdomains/ens": "^0.3.5",
+    "@ensdomains/ens": "^0.4.0",
+    "@ensdomains/ethregistrar": "^1.2.9",
     "eth-ens-namehash": "^2.0.0",
     "html-loader": "^0.5.1",
     "idna-uts46": "1.1.0",

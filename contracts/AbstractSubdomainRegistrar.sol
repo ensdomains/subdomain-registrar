@@ -107,6 +107,18 @@ contract AbstractSubdomainRegistrar is RegistrarInterface {
         registrarOwner = newOwner;
     }
 
+    /**
+     * @dev Returns information about a subdomain.
+     * @param label The label hash for the domain.
+     * @param subdomain The label for the subdomain.
+     * @return domain The name of the domain, or an empty string if the subdomain
+     *                is unavailable.
+     * @return price The price to register a subdomain, in wei.
+     * @return rent The rent to retain a subdomain, in wei per second.
+     * @return referralFeePPM The referral fee for the dapp, in ppm.
+     */
+    function query(bytes32 label, string calldata subdomain) external view returns (string memory domain, uint price, uint rent, uint referralFeePPM);
+
     function owner(bytes32 label) public view returns (address);
     function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public;
 }

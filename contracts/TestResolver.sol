@@ -11,8 +11,7 @@ contract TestResolver is Resolver {
 
     mapping (bytes32 => address) addresses;
 
-    constructor(ENS _ens) public {
-        ens = _ens;
+    constructor() public {
     }
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
@@ -24,7 +23,6 @@ contract TestResolver is Resolver {
     }
 
     function setAddr(bytes32 node, address addr) public {
-        require(ens.owner(node) == msg.sender);
         addresses[node] = addr;
     }
 }

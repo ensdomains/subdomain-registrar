@@ -2,7 +2,7 @@ const ENS = artifacts.require("ENSRegistry");
 const SubdomainRegistrar = artifacts.require("SubdomainRegistrar");
 const EthRegistrarSubdomainRegistrar = artifacts.require("EthRegistrarSubdomainRegistrar");
 const SubdomainMigrationRegistrar = artifacts.require("SubdomainMigrationRegistrar");
-const EthRegistrar = artifacts.require("BaseRegistrarImplementation");
+const EthRegistrar = artifacts.require("OldBaseRegistrarImplementation");
 const HashRegistrar = artifacts.require("HashRegistrar");
 const TestResolver = artifacts.require("TestResolver");
 

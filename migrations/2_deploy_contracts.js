@@ -18,7 +18,7 @@ module.exports = function (deployer, network, accounts) {
             const ens = await ENS.deployed();
 
             await deployer.deploy(HashRegistrar, ens.address, namehash.hash('eth'), 1493895600);
-            await deployer.deploy(TestResolver, ens.address);
+            await deployer.deploy(TestResolver);
 
             await ens.setSubnodeOwner('0x0', '0x' + sha3('eth'), accounts[0]);
             await ens.setSubnodeOwner(namehash.hash('eth'), '0x' + sha3('resolver'), accounts[0]);
