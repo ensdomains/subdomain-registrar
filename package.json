@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/subdomain-registrar",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "requires": true,
   "license": "BSD-2-Clause",
   "repository": {
@@ -9,6 +9,7 @@
   },
   "lockfileVersion": 1,
   "devDependencies": {
+    "@ensdomains/test-utils": "^1.2.0",
     "babel-cli": "^6.22.2",
     "babel-core": "^6.22.1",
     "babel-eslint": "^6.1.2",
@@ -17,6 +18,7 @@
     "babel-preset-env": "^1.1.8",
     "babel-preset-es2015": "^6.22.0",
     "babel-register": "^6.22.0",
+    "bluebird": "^3.5.3",
     "bootstrap": "^4.0.0-beta.2",
     "bootstrap-loader": "^2.2.0",
     "copy-webpack-plugin": "^4.0.1",
@@ -45,11 +47,9 @@
     "truffle-contract": "^1.1.11",
     "url-loader": "^0.6.2",
     "web3": "^0.18.2",
-    "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.9.3",
     "web3-utils": "^1.0.0-beta.48",
-    "bluebird": "^3.5.3",
-    "@ensdomains/test-utils": "^1.2.0"
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.9.3"
   },
   "scripts": {
     "test": "truffle test",
