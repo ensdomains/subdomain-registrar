@@ -9,12 +9,13 @@ import { default as $ } from 'jquery';
 import { keccak_256 as sha3 } from 'js-sha3';
 import { default as Promise } from 'bluebird';
 
-import subdomainregistrar_artifacts from '../../build/contracts/EthRegistrarSubdomainRegistrar.json';
+import subdomainregistrar_artifacts from '../../build/contracts/ENSMigrationSubdomainRegistrar.json';
 import ens_artifacts from '../../build/contracts/ENS.json';
 import domainnames from './domains.json';
 
 const tld = "eth";
 const referrerAddress = "0x0904Dac3347eA47d208F3Fd67402D039a3b99859";
+const defaultSubdomainRegistrar = "0xe65d8AAF34CB91087D1598e0A15B582F57F217d9";
 
 var SubdomainRegistrar = contract(subdomainregistrar_artifacts);
 var ENS = contract(ens_artifacts);
@@ -108,7 +109,7 @@ window.App = {
     for(var i = 0; i < domainnames.length; i++) {
       var domain = domainnames[i];
       if(registrars[domain.registrar] === undefined) {
-        registrars[domain.registrar] = await ((domain.registrar === undefined) ? SubdomainRegistrar.deployed() : SubdomainRegistrar.at(domain.registrar));
+        registrars[domain.registrar] = await ((domain.registrar === undefined) ? SubdomainRegistrar.at(defaultSubdomainRegistrar) : SubdomainRegistrar.at(domain.registrar));
       }
       domainnames[i].contract = registrars[domain.registrar];
     }
