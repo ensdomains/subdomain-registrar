@@ -14,6 +14,7 @@ import ens_artifacts from '../../build/contracts/ENSRegistryWithFallback.json';
 import domainnames from './domains.json';
 
 const tld = "eth";
+const ensAddress = "0x00000000000c2e074ec69a0dfb2997ba6c7d2e1e";
 const referrerAddress = "0x0904Dac3347eA47d208F3Fd67402D039a3b99859";
 const defaultSubdomainRegistrar = "0xe65d8AAF34CB91087D1598e0A15B582F57F217d9";
 
@@ -61,7 +62,7 @@ window.App = {
     ENS.setProvider(web3.currentProvider);
 
     try {
-      self.ens = await ENS.deployed();
+      self.ens = await ENS.at(ensAddress);
 
       // Construct instances of the registrars we know about
       await this.buildInstances();
