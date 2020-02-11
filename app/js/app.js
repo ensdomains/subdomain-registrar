@@ -10,7 +10,7 @@ import { keccak_256 as sha3 } from 'js-sha3';
 import { default as Promise } from 'bluebird';
 
 import subdomainregistrar_artifacts from '../../build/contracts/ENSMigrationSubdomainRegistrar.json';
-import ens_artifacts from '../../build/contracts/ENS.json';
+import ens_artifacts from '../../build/contracts/ENSRegistryWithFallback.json';
 import domainnames from './domains.json';
 
 const tld = "eth";
