@@ -21,6 +21,7 @@
   {"name": "doexist", "version": "1.0"},  
   {"name": "dontexist", "version": "1.0"},
   {"name": "eastoasis", "version": "1.0"},
+  {"name": "enser", "version": "1.0"},
   {"name": "eth-gbg", "version": "1.0"},
   {"name": "etherbase", "version": "1.0"},
   {"name": "gimmethe", "version": "1.0"},
@@ -33,6 +34,7 @@
   {"name": "laundering", "version": "1.0"},  
   {"name": "paynonym", "version": "1.0"},
   {"name": "payid", "version": "1.0"},
+  {"name": "sanwei", "version": "1.0"},
   {"name": "sendmecrypto", "version": "1.0"},
   {"name": "thecryptogirl", "version": "1.0"},
   {"name": "thecryptoguy", "version": "1.0"},
@@ -41,4 +43,5 @@
   {"name": "trustnobank", "version": "1.0"},
   {"name": "wantsome", "version": "1.0"},
   {"name": "xannyfamily", "version": "1.0"}
+  {"name": "xuyao", "version": "1.0"},
 ]
