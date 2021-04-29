@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
-import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 import "./AbstractSubdomainRegistrar.sol";
+import "@ensdomains/ethregistrar/contracts/PriceOracle.sol";
 
 /**
  * @dev Implements an ENS registrar that sells subdomains on behalf of their owners.
@@ -41,7 +41,16 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
 
     mapping (bytes32 => Domain) domains;
 
-    constructor(ENS ens) AbstractSubdomainRegistrar(ens) public { }
+    PriceOracle prices;
+
+    constructor(ENS ens, PriceOracle _prices, BaseRegistrar _base) AbstractSubdomainRegistrar(ens, _base) public {
+        prices = _prices;
+    }
+
+    function rentPrice(string memory name, uint duration) view public returns(uint) {
+        bytes32 hash = keccak256(bytes(name));
+        return prices.price(name, base.nameExpires(uint256(hash)), duration);
+    }
 
     /**
      * @dev owner returns the address of the account that controls a domain.
@@ -82,13 +91,13 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
      *        when the permanent registrar is replaced. Can only be set to a non-zero
      *        value once.
      */
-    function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public owner_only(keccak256(bytes(name))) {
+    function configureDomainFor(string memory name, uint price, uint referralFeePPM, address payable _owner, address _transfer) public {
         bytes32 label = keccak256(bytes(name));
         Domain storage domain = domains[label];
 
         if (BaseRegistrar(registrar).ownerOf(uint256(label)) != address(this)) {
-            BaseRegistrar(registrar).transferFrom(msg.sender, address(this), uint256(label));
-            BaseRegistrar(registrar).reclaim(uint256(label), address(this));
+             BaseRegistrar(registrar).transferFrom(msg.sender, address(this), uint256(label));
+             BaseRegistrar(registrar).reclaim(uint256(label), address(this));
         }
 
         if (domain.owner != _owner) {
@@ -148,9 +157,8 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
      * @param label The label hash of the domain to register a subdomain of.
      * @param subdomain The desired subdomain label.
      * @param _subdomainOwner The account that should own the newly configured subdomain.
-     * @param referrer The address of the account to receive the referral fee.
      */
-    function register(bytes32 label, string calldata subdomain, address _subdomainOwner, address payable referrer, address resolver) external not_stopped payable {
+    function register(bytes32 label, string calldata subdomain, address _subdomainOwner, uint duration, string calldata url, address resolver) external not_stopped payable {
         address subdomainOwner = _subdomainOwner;
         bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
         bytes32 subdomainLabel = keccak256(bytes(subdomain));
@@ -160,24 +168,21 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
 
         Domain storage domain = domains[label];
 
+        uint price = prices.price(subdomain, base.nameExpires(uint256(subdomainLabel)), duration);
+
         // Domain must be available for registration
         require(keccak256(bytes(domain.name)) == label);
 
         // User must have paid enough
-        require(msg.value >= domain.price);
+        require(msg.value >= price);
 
         // Send any extra back
-        if (msg.value > domain.price) {
-            msg.sender.transfer(msg.value - domain.price);
+        if (msg.value > price) {
+            msg.sender.transfer(msg.value - price);
         }
 
         // Send any referral fee
-        uint256 total = domain.price;
-        if (domain.referralFeePPM > 0 && referrer != address(0x0) && referrer != domain.owner) {
-            uint256 referralFee = (domain.price * domain.referralFeePPM) / 1000000;
-            referrer.transfer(referralFee);
-            total -= referralFee;
-        }
+        uint256 total = price;
 
         // Send the registration fee
         if (total > 0) {
@@ -188,9 +193,10 @@ contract EthRegistrarSubdomainRegistrar is AbstractSubdomainRegistrar {
         if (subdomainOwner == address(0x0)) {
             subdomainOwner = msg.sender;
         }
-        doRegistration(domainNode, subdomainLabel, subdomainOwner, Resolver(resolver));
 
-        emit NewRegistration(label, subdomain, subdomainOwner, referrer, domain.price);
+        doRegistration(domainNode, subdomainLabel, duration, url, subdomainOwner, Resolver(resolver));
+
+        emit NewRegistration(label, subdomain, subdomainOwner, price);
     }
 
     function rentDue(bytes32 label, string calldata subdomain) external view returns (uint timestamp) {

@@ -1,5 +1,6 @@
 pragma solidity ^0.5.0;
 
+import "@ensdomains/ethregistrar/contracts/BaseRegistrar.sol";
 import "@ensdomains/ens/contracts/ENS.sol";
 import "./Resolver.sol";
 import "./RegistrarInterface.sol";
@@ -7,7 +8,10 @@ import "./RegistrarInterface.sol";
 contract AbstractSubdomainRegistrar is RegistrarInterface {
 
     // namehash('eth')
-    bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+    // bytes32 constant public TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+    bytes32 constant public TLD_NODE = 0x30f9ae3b1c4766476d11e2bacd21f9dff2c59670d8b8a74a88ebc22aec7020b9;
+
+    uint constant public GRACE_PERIOD = 90 days;
 
     bool public stopped = false;
     address public registrarOwner;
@@ -15,7 +19,14 @@ contract AbstractSubdomainRegistrar is RegistrarInterface {
 
     address public registrar;
 
+    // A map of expiry times
+    mapping(uint256=>uint) expiries;
+
+    // Optional mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
+
     ENS public ens;
+    BaseRegistrar public base;
 
     modifier owner_only(bytes32 label) {
         require(owner(label) == msg.sender);
@@ -34,17 +45,53 @@ contract AbstractSubdomainRegistrar is RegistrarInterface {
 
     event DomainTransferred(bytes32 indexed label, string name);
 
-    constructor(ENS _ens) public {
+    constructor(ENS _ens, BaseRegistrar _base) public {
         ens = _ens;
+        base = _base;
         registrar = ens.owner(TLD_NODE);
         registrarOwner = msg.sender;
     }
 
-    function doRegistration(bytes32 node, bytes32 label, address subdomainOwner, Resolver resolver) internal {
+    // Returns the expiration timestamp of the specified id.
+    function nameExpires(uint256 id) external view returns(uint) {
+        return expiries[id];
+    }
+
+    // Returns true iff the specified name is available for registration.
+    function available(uint256 id) public view returns(bool) {
+        // Not available if it's registered here or in its grace period.
+        return expiries[id] + GRACE_PERIOD < now;
+    }
+
+    function twitter(bytes32 node) external view returns (string memory) {
+        uint256 tokenId = uint256(node);
+
+        string memory _twitterURI = _tokenURIs[tokenId];
+
+        return _twitterURI;
+    }
+
+    function _setTwitterURI(string memory name, string memory _tokenURI) public owner_only(keccak256(bytes(name))) {
+        bytes32 label = keccak256(bytes(name));
+        uint256 tokenId = uint256(label);
+        require(available(tokenId));
+
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+
+    function doRegistration(bytes32 node, bytes32 label, uint duration, string memory _tokenURI, address subdomainOwner, Resolver resolver) internal {
+        bytes32 subnode = keccak256(abi.encodePacked(node, label));
+        uint256 tokenId = uint256(subnode);
+
+        require(available(tokenId));
+        require(now + duration + GRACE_PERIOD > now + GRACE_PERIOD); // Prevent future overflow
+
+        expiries[tokenId] = now + duration;
+        _tokenURIs[tokenId] = _tokenURI;
+
         // Get the subdomain so we can configure it
         ens.setSubnodeOwner(node, label, address(this));
 
-        bytes32 subnode = keccak256(abi.encodePacked(node, label));
         // Set the subdomain's resolver
         ens.setResolver(subnode, address(resolver));
 
