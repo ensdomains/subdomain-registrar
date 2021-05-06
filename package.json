@@ -78,6 +78,6 @@
     "js-sha3": "0.6.1",
     "punycode": "2.1.0",
     "truffle-default-builder": "^2.0.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.12.1"
   }
 }
