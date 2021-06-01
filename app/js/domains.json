@@ -19,6 +19,7 @@
   {"name": "doesexist", "version": "1.0"},  
   {"name": "doesntexist", "version": "1.0"},
   {"name": "doexist", "version": "1.0"},  
+  {"name": "difiswap", "version": "1.0"},  
   {"name": "eth-gbg", "version": "1.0"},
   {"name": "etherbase", "version": "1.0"},
   {"name": "gimmethe", "version": "1.0"},
