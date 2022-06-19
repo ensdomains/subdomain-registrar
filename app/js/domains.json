@@ -28,6 +28,8 @@
   {"name": "ismoney", "version": "1.0"},
   {"name": "paynonym", "version": "1.0"},
   {"name": "sendmecrypto", "version": "1.0"},
+  {"name": "singlesdate", "version": "1.0"},
+  {"name": "singlesmeet", "version": "1.0"},
   {"name": "thecryptogirl", "version": "1.0"},
   {"name": "thecryptoguy", "version": "1.0"},
   {"name": "tokenid", "version": "1.0"},
